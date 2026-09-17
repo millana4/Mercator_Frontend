@@ -1,23 +1,25 @@
-// ---------- Временная проверка темы — заменится роутингом и Header на следующих шагах ----------
+// ---------- Роутинг: Дашборд (/) и Настройки (/settings) ----------
 import { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { setTheme } from './store/slices/themeSlice';
+import { useSelector } from 'react-redux';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import DashboardPage from './pages/dashboard_page/DashboardPage';
+import SettingsPage from './pages/settings_page/SettingsPage';
 import './App.css';
 
 function App() {
   const theme = useSelector((state) => state.theme.value);
-  const dispatch = useDispatch();
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
   }, [theme]);
 
   return (
-    <div style={{ padding: 24 }}>
-      <p>Текущая тема: {theme}</p>
-      <button onClick={() => dispatch(setTheme('light'))}>Светлая</button>
-      <button onClick={() => dispatch(setTheme('dark'))}>Тёмная</button>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<DashboardPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
