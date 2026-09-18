@@ -1,12 +1,13 @@
-// ---------- Один блок аналитики: шапка + Тренд/Событие + график ----------
+// ---------- Один блок аналитики: шапка + Тренд/Событие + график + участники ----------
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { getLevels, getSnapshot } from '../../services/api';
-import { getCurrentEvent } from '../../utils/analytics';
+import { getCurrentEvent, getParticipantsTitle } from '../../utils/analytics';
 import { fmtLevelKey } from '../../utils/format';
 import TrendCard from '../trend_card/TrendCard';
 import EventCard from '../event_card/EventCard';
 import MarketChart from '../market_chart/MarketChart';
+import ParticipantsPanel from '../participants_panel/ParticipantsPanel';
 import styles from './AnalyticsBlock.module.css';
 
 function AnalyticsBlock({ level, headerLabel, fixedLevelKey, fixedLevelKeyLabel }) {
@@ -18,6 +19,8 @@ function AnalyticsBlock({ level, headerLabel, fixedLevelKey, fixedLevelKeyLabel 
   const [selectedKey, setSelectedKey] = useState(null);
   const [ewmaSnapshot, setEwmaSnapshot] = useState(null);
   const [macdSnapshot, setMacdSnapshot] = useState(null);
+  const [trendPanelOpen, setTrendPanelOpen] = useState(false);
+  const [eventPanelOpen, setEventPanelOpen] = useState(false);
 
   const levelKey = isFixed ? fixedLevelKey : selectedKey;
 
@@ -41,6 +44,9 @@ function AnalyticsBlock({ level, headerLabel, fixedLevelKey, fixedLevelKeyLabel 
     if (!category || !marketplace || !geo || !levelKey) return;
     const params = { category, marketplace, geo, level, level_key: levelKey };
 
+    setTrendPanelOpen(false);
+    setEventPanelOpen(false);
+
     setEwmaSnapshot(null);
     getSnapshot({ ...params, algorithm: 'EWMA' })
       .then(setEwmaSnapshot)
@@ -52,17 +58,20 @@ function AnalyticsBlock({ level, headerLabel, fixedLevelKey, fixedLevelKeyLabel 
       .catch(() => setMacdSnapshot({ meta: { sufficient: false }, events: [], curve: [] }));
   }, [category, marketplace, geo, level, levelKey]);
 
+  const trendEvent = ewmaSnapshot && ewmaSnapshot.meta.sufficient ? getCurrentEvent(ewmaSnapshot.events) : null;
+  const eventEvent = macdSnapshot && macdSnapshot.meta.sufficient ? getCurrentEvent(macdSnapshot.events) : null;
+
   const trendStatus = !ewmaSnapshot
     ? { state: 'loading' }
     : !ewmaSnapshot.meta.sufficient
       ? { state: 'hidden' }
-      : { state: 'ready', event: getCurrentEvent(ewmaSnapshot.events) };
+      : { state: 'ready', event: trendEvent };
 
   const eventStatus = !macdSnapshot
     ? { state: 'loading' }
     : !macdSnapshot.meta.sufficient
       ? { state: 'hidden' }
-      : { state: 'ready', event: getCurrentEvent(macdSnapshot.events) };
+      : { state: 'ready', event: eventEvent };
 
   if (!isFixed && !levelsLoaded) return null;
   if (!isFixed && availableKeys.length === 0) return null;
@@ -75,7 +84,7 @@ function AnalyticsBlock({ level, headerLabel, fixedLevelKey, fixedLevelKeyLabel 
       <div className={styles.header}>
         <span className={styles.headerLabel}>{headerLabel}</span>
         {isFixed ? (
-          <span className={styles.headerValue}>«{fixedLevelKeyLabel}»</span>
+          <span className={styles.headerValue}>{fixedLevelKeyLabel}</span>
         ) : (
           <select value={selectedKey || ''} onChange={(e) => setSelectedKey(e.target.value)}>
             {availableKeys.map((k) => (
@@ -84,10 +93,19 @@ function AnalyticsBlock({ level, headerLabel, fixedLevelKey, fixedLevelKeyLabel 
           </select>
         )}
       </div>
+
       <div className={styles.body}>
         <div className={styles.data}>
-          <TrendCard status={trendStatus} />
-          <EventCard status={eventStatus} />
+          <TrendCard
+            status={trendStatus}
+            isPanelOpen={trendPanelOpen}
+            onToggleParticipants={() => setTrendPanelOpen((v) => !v)}
+          />
+          <EventCard
+            status={eventStatus}
+            isPanelOpen={eventPanelOpen}
+            onToggleParticipants={() => setEventPanelOpen((v) => !v)}
+          />
         </div>
         <div className={styles.chart}>
           {chartReady ? (
@@ -101,6 +119,23 @@ function AnalyticsBlock({ level, headerLabel, fixedLevelKey, fixedLevelKeyLabel 
           )}
         </div>
       </div>
+
+      {trendPanelOpen && trendEvent && (
+        <ParticipantsPanel
+          title={getParticipantsTitle('trend', trendEvent.direction)}
+          colorVar={trendEvent.direction === 'up' ? '--trend-up' : '--trend-down'}
+          eventId={trendEvent.id}
+          onClose={() => setTrendPanelOpen(false)}
+        />
+      )}
+      {eventPanelOpen && eventEvent && (
+        <ParticipantsPanel
+          title={getParticipantsTitle('event', eventEvent.direction)}
+          colorVar={eventEvent.direction === 'up' ? '--event-up' : '--event-down'}
+          eventId={eventEvent.id}
+          onClose={() => setEventPanelOpen(false)}
+        />
+      )}
     </div>
   );
 }

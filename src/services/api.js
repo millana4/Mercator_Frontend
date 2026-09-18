@@ -29,4 +29,10 @@ export const getLevels = (params) => api.get('/levels', { params }).then((res) =
 
 export const getSnapshot = (params) => api.get('/snapshot', { params }).then((res) => res.data);
 
+export const getEventParticipants = (eventId) =>
+  api.get(`/events/${eventId}/participants`).then((res) => res.data);
+
+export const getCardMeasurements = (sku, days = 30) =>
+  api.get(`/cards/${sku}/measurements`, { params: { days } }).then((res) => res.data);
+
 export default api;

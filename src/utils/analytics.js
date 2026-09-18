@@ -53,3 +53,14 @@ export function buildRuns(points) {
   }
   return runs;
 }
+
+const PARTICIPANTS_TITLES = {
+  'trend-down': 'Карточки-участники тренда на снижение цен',
+  'trend-up': 'Карточки-участники тренда на повышение цен',
+  'event-down': 'Карточки-участники события снижения цен',
+  'event-up': 'Карточки-участники события роста цен',
+};
+
+export function getParticipantsTitle(kind, direction) {
+  return PARTICIPANTS_TITLES[`${kind}-${direction}`] || '';
+}

@@ -19,7 +19,7 @@
   justify-content: space-between;
   gap: 12px;
   font-size: 16px;
-  padding: 2px 0;
+  padding: 6px 0;
 }
 
 .row b {
@@ -45,4 +45,21 @@
 
 .infoIcon:hover {
   opacity: 1;
+}
+
+.btnToggle {
+  background: var(--bg-card-alt);
+  color: var(--event-none);
+  border: 1px solid var(--border);
+  padding: 10px 18px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  text-align: left;
+  margin-top: 12px;
+}
+
+.btnToggle:hover {
+  border-color: var(--accent);
 }

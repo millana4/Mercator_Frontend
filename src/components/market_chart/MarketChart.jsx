@@ -3,8 +3,9 @@ import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { getPeriodRange, assignEventToPoints, buildRuns } from '../../utils/analytics';
 import { fmtShortDate, fmtDate, fmtArrow, fmtPct } from '../../utils/format';
-import { TREND_LABEL, EVENT_LABEL } from '../../constants/labels';
+import { TREND_LABEL, EVENT_LABEL, CHART_TRAJECTORY_TOOLTIP } from '../../constants/labels';
 import ChartTooltip from '../chart_tooltip/ChartTooltip';
+import InfoTooltip from '../info_tooltip/InfoTooltip';
 import styles from './MarketChart.module.css';
 
 const W = 660;
@@ -66,6 +67,11 @@ function MarketChart({ curve, trendEvents, eventEvents }) {
         if (tooltip) setTooltip((t) => t && { ...t, x: e.clientX, y: e.clientY });
       }}
     >
+      <div className={styles.caption}>
+        <span>Траектория рынка</span>
+        <InfoTooltip text={CHART_TRAJECTORY_TOOLTIP} />
+      </div>
+
       <svg className={styles.svg} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none">
         {[minV, (minV + maxV) / 2, maxV].map((v, idx) => (
           <g key={idx}>
@@ -84,10 +90,6 @@ function MarketChart({ curve, trendEvents, eventEvents }) {
             </text>
           );
         })}
-
-        <text x={PAD_L} y={12} className={styles.axisCaption}>
-          траектория рынка, усреднённый логарифм цены
-        </text>
 
         {runs.map((run, ri) => {
           const colorVar = run.direction === 'up' ? '--trend-up' : run.direction === 'down' ? '--trend-down' : '--trend-none';

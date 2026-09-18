@@ -21,6 +21,7 @@
 .label {
   color: var(--label-text);
   font-size: 16px;
+  font-weight: 700;
   white-space: nowrap;
 }
 
@@ -30,8 +31,9 @@
   color: var(--text);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  padding: 6px 10px;
+  padding: 10px 18px;
   font-size: 16px;
+  font-weight: 700;
 }
 
 .periodGroup {

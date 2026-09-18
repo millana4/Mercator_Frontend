@@ -41,3 +41,20 @@ export function fmtLevelKey(levelKey) {
   const genderLabel = GENDER_LABELS[genderCode];
   return genderLabel ? `${title}, ${genderLabel}` : levelKey;
 }
+
+const MONTHS_SHORT = [
+  'янв', 'фев', 'мар', 'апр', 'май', 'июн',
+  'июл', 'авг', 'сен', 'окт', 'ноя', 'дек',
+];
+
+export function fmtDateWithMonthWord(isoString) {
+  const d = new Date(isoString);
+  const year = String(d.getFullYear()).slice(-2);
+  return `${pad2(d.getDate())} ${MONTHS_SHORT[d.getMonth()]} ${year}`;
+}
+
+export function fmtDateTimeShort(isoString) {
+  const d = new Date(isoString);
+  const year = String(d.getFullYear()).slice(-2);
+  return `${pad2(d.getDate())}.${pad2(d.getMonth() + 1)}.${year} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+}

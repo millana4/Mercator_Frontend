@@ -4,7 +4,7 @@ import { fmtArrow, fmtDate, fmtPct } from '../../utils/format';
 import InfoTooltip from '../info_tooltip/InfoTooltip';
 import styles from './EventCard.module.css';
 
-function EventCard({ status }) {
+function EventCard({ status, isPanelOpen, onToggleParticipants }) {
   if (status.state === 'loading') {
     return (
       <div className={styles.section}>
@@ -38,6 +38,9 @@ function EventCard({ status }) {
             <span>Средняя скорость изменения</span>
             <b>{fmtArrow(direction, event.speed_pct_per_day, '%/сутки')}</b>
           </div>
+          <button className={styles.btnToggle} onClick={onToggleParticipants}>
+            {isPanelOpen ? 'Скрыть участников' : 'Посмотреть участников'}
+          </button>
         </>
       )}
     </div>

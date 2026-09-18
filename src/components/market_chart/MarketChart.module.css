@@ -2,6 +2,15 @@
   width: 100%;
 }
 
+.caption {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
 .svg {
   width: 100%;
   height: auto;
@@ -9,11 +18,6 @@
 }
 
 .axisLabel {
-  fill: var(--text-muted);
-  font-size: 11px;
-}
-
-.axisCaption {
   fill: var(--text-muted);
   font-size: 11px;
 }
