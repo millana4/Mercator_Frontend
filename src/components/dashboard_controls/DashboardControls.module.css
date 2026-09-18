@@ -19,7 +19,7 @@
 }
 
 .label {
-  color: var(--text-muted);
+  color: var(--label-text);
   font-size: 16px;
   white-space: nowrap;
 }

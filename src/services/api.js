@@ -25,4 +25,8 @@ export const getSubscriptions = () => api.get('/subscriptions').then((res) => re
 export const putSubscriptions = (rows) =>
   api.put('/subscriptions', rows).then((res) => res.data);
 
+export const getLevels = (params) => api.get('/levels', { params }).then((res) => res.data);
+
+export const getSnapshot = (params) => api.get('/snapshot', { params }).then((res) => res.data);
+
 export default api;
