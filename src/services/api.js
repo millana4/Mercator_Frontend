@@ -18,4 +18,11 @@ export const login = (username, password) =>
 
 export const getMe = () => api.get('/auth/me').then((res) => res.data);
 
+export const getCatalog = () => api.get('/catalog').then((res) => res.data);
+
+export const getSubscriptions = () => api.get('/subscriptions').then((res) => res.data);
+
+export const putSubscriptions = (rows) =>
+  api.put('/subscriptions', rows).then((res) => res.data);
+
 export default api;

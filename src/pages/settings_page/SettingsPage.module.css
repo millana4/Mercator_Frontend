@@ -1,0 +1,74 @@
+.pageWrap {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.block {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px 22px;
+  box-shadow: var(--shadow);
+}
+
+.sectionTitle {
+  font-size: 18px;
+  margin: 0 0 14px 0;
+}
+
+.muted {
+  font-size: 16px;
+  color: var(--text-muted);
+  margin: 6px 0;
+}
+
+.errorNote {
+  font-size: 16px;
+  color: var(--danger);
+  margin: 6px 0;
+}
+
+.rowsList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.rowsActions {
+  margin-bottom: 14px;
+}
+
+.btnSecondary {
+  background: var(--bg-card-alt);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 10px 18px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.btnSecondary:hover {
+  border-color: var(--accent);
+}
+
+.btnPrimary {
+  background: var(--accent);
+  color: var(--accent-text);
+  border: none;
+  padding: 10px 18px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.btnPrimary:hover {
+  background: var(--accent-hover);
+}
