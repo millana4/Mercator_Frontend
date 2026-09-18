@@ -1,4 +1,4 @@
-// ---------- Форматирование дат и чисел для карточек тренда/события ----------
+// ---------- Форматирование дат, чисел и названий срезов для карточек тренда/события ----------
 function pad2(n) {
   return n < 10 ? '0' + n : '' + n;
 }
@@ -6,6 +6,11 @@ function pad2(n) {
 export function fmtDate(isoString) {
   const d = new Date(isoString);
   return `${pad2(d.getDate())}.${pad2(d.getMonth() + 1)}.${d.getFullYear()}`;
+}
+
+export function fmtShortDate(isoString) {
+  const d = new Date(isoString);
+  return `${pad2(d.getDate())}.${pad2(d.getMonth() + 1)}`;
 }
 
 export function fmtPct(value) {

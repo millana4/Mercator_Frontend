@@ -1,0 +1,18 @@
+.tooltip {
+  position: fixed;
+  z-index: 1000;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 3px solid currentColor;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  padding: 10px 12px;
+  font-size: 16px;
+  line-height: 1.4;
+  pointer-events: none;
+  max-width: 280px;
+}
+
+.tooltip div {
+  margin: 2px 0;
+}

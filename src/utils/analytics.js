@@ -1,7 +1,55 @@
-// ---------- Определение актуального (текущего) тренда/события по снепшоту ----------
+// ---------- Определение актуального тренда/события и подготовка данных для графика ----------
+
 export function getCurrentEvent(events) {
   if (!events || events.length === 0) return null;
-  const sorted = [...events].sort((a, b) => new Date(a.start_at) - new Date(b.start_at));
-  const last = sorted[sorted.length - 1];
-  return last.is_open ? last : null;
+  return events.find((e) => e.is_open) || null;
+}
+
+// Границы периода для графика. /snapshot отдаёт всю историю целиком —
+// период отрезает нужный кусок уже на фронте, бэкенд про период не знает.
+export function getPeriodRange(period, customFrom, customTo, curve) {
+  if (period === 'custom') {
+    const to = new Date(customTo);
+    to.setHours(23, 59, 59, 999);
+    return { from: new Date(customFrom), to };
+  }
+  const days = { month: 30, halfyear: 182, year: 365 }[period] || 30;
+  const lastDate = curve.length > 0 ? new Date(curve[curve.length - 1].parsed_at) : new Date();
+  const from = new Date(lastDate);
+  from.setDate(from.getDate() - days);
+  return { from, to: lastDate };
+}
+
+// Красит каждую точку кривой в направление того события EWMA, в чьё окно
+// [start_at, end_at] она попадает — вне любого окна точка серая ("none").
+export function assignEventToPoints(curve, events) {
+  return curve.map((p) => {
+    const t = new Date(p.parsed_at).getTime();
+    const match = events.find((e) => {
+      const s = new Date(e.start_at).getTime();
+      const en = new Date(e.end_at).getTime();
+      return t >= s && t <= en;
+    });
+    return { ...p, direction: match ? match.direction : 'none', event: match || null };
+  });
+}
+
+// Склеивает подряд идущие точки с одним и тем же событием в один отрезок —
+// для сплошной цветной линии и одной зоны наведения на весь отрезок.
+export function buildRuns(points) {
+  const runs = [];
+  let i = 0;
+  while (i < points.length) {
+    let j = i;
+    while (
+      j + 1 < points.length &&
+      points[j + 1].direction === points[i].direction &&
+      points[j + 1].event === points[i].event
+    ) {
+      j++;
+    }
+    runs.push({ from: i > 0 ? i - 1 : i, to: j, direction: points[i].direction, event: points[i].event });
+    i = j + 1;
+  }
+  return runs;
 }

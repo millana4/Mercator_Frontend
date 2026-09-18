@@ -1,4 +1,4 @@
-// ---------- Один блок аналитики: шапка + Тренд/Событие + место под график (шаг 10) ----------
+// ---------- Один блок аналитики: шапка + Тренд/Событие + график ----------
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { getLevels, getSnapshot } from '../../services/api';
@@ -6,6 +6,7 @@ import { getCurrentEvent } from '../../utils/analytics';
 import { fmtLevelKey } from '../../utils/format';
 import TrendCard from '../trend_card/TrendCard';
 import EventCard from '../event_card/EventCard';
+import MarketChart from '../market_chart/MarketChart';
 import styles from './AnalyticsBlock.module.css';
 
 function AnalyticsBlock({ level, headerLabel, fixedLevelKey, fixedLevelKeyLabel }) {
@@ -15,8 +16,8 @@ function AnalyticsBlock({ level, headerLabel, fixedLevelKey, fixedLevelKeyLabel 
   const [availableKeys, setAvailableKeys] = useState([]);
   const [levelsLoaded, setLevelsLoaded] = useState(false);
   const [selectedKey, setSelectedKey] = useState(null);
-  const [trendStatus, setTrendStatus] = useState({ state: 'loading' });
-  const [eventStatus, setEventStatus] = useState({ state: 'loading' });
+  const [ewmaSnapshot, setEwmaSnapshot] = useState(null);
+  const [macdSnapshot, setMacdSnapshot] = useState(null);
 
   const levelKey = isFixed ? fixedLevelKey : selectedKey;
 
@@ -40,26 +41,34 @@ function AnalyticsBlock({ level, headerLabel, fixedLevelKey, fixedLevelKeyLabel 
     if (!category || !marketplace || !geo || !levelKey) return;
     const params = { category, marketplace, geo, level, level_key: levelKey };
 
-    setTrendStatus({ state: 'loading' });
+    setEwmaSnapshot(null);
     getSnapshot({ ...params, algorithm: 'EWMA' })
-      .then((data) => {
-        if (!data.meta.sufficient) { setTrendStatus({ state: 'hidden' }); return; }
-        setTrendStatus({ state: 'ready', event: getCurrentEvent(data.events) });
-      })
-      .catch(() => setTrendStatus({ state: 'hidden' }));
+      .then(setEwmaSnapshot)
+      .catch(() => setEwmaSnapshot({ meta: { sufficient: false }, events: [], curve: [] }));
 
-    setEventStatus({ state: 'loading' });
+    setMacdSnapshot(null);
     getSnapshot({ ...params, algorithm: 'MACD' })
-      .then((data) => {
-        if (!data.meta.sufficient) { setEventStatus({ state: 'hidden' }); return; }
-        setEventStatus({ state: 'ready', event: getCurrentEvent(data.events) });
-      })
-      .catch(() => setEventStatus({ state: 'hidden' }));
+      .then(setMacdSnapshot)
+      .catch(() => setMacdSnapshot({ meta: { sufficient: false }, events: [], curve: [] }));
   }, [category, marketplace, geo, level, levelKey]);
+
+  const trendStatus = !ewmaSnapshot
+    ? { state: 'loading' }
+    : !ewmaSnapshot.meta.sufficient
+      ? { state: 'hidden' }
+      : { state: 'ready', event: getCurrentEvent(ewmaSnapshot.events) };
+
+  const eventStatus = !macdSnapshot
+    ? { state: 'loading' }
+    : !macdSnapshot.meta.sufficient
+      ? { state: 'hidden' }
+      : { state: 'ready', event: getCurrentEvent(macdSnapshot.events) };
 
   if (!isFixed && !levelsLoaded) return null;
   if (!isFixed && availableKeys.length === 0) return null;
   if (levelKey && trendStatus.state === 'hidden' && eventStatus.state === 'hidden') return null;
+
+  const chartReady = ewmaSnapshot && ewmaSnapshot.meta.sufficient;
 
   return (
     <div className={styles.block}>
@@ -81,7 +90,15 @@ function AnalyticsBlock({ level, headerLabel, fixedLevelKey, fixedLevelKeyLabel 
           <EventCard status={eventStatus} />
         </div>
         <div className={styles.chart}>
-          <p className={styles.muted}>График — на шаге 10</p>
+          {chartReady ? (
+            <MarketChart
+              curve={ewmaSnapshot.curve}
+              trendEvents={ewmaSnapshot.events}
+              eventEvents={macdSnapshot && macdSnapshot.meta.sufficient ? macdSnapshot.events : []}
+            />
+          ) : (
+            <p className={styles.muted}>Недостаточно точек для графика.</p>
+          )}
         </div>
       </div>
     </div>
