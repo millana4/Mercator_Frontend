@@ -1,0 +1,31 @@
+.banner {
+  max-width: 1200px;
+  margin: 16px auto 0;
+  padding: 44px 20px;
+  text-align: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+}
+
+.banner p {
+  font-size: 16px;
+  margin: 0 0 16px 0;
+  color: var(--text-muted);
+}
+
+.btnPrimary {
+  background: var(--accent);
+  color: var(--accent-text);
+  border: none;
+  padding: 10px 18px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.btnPrimary:hover {
+  background: var(--accent-hover);
+}
