@@ -96,3 +96,7 @@
 .btnPrimary:hover {
   background: var(--accent-hover);
 }
+
+.headerWrap {
+  position: relative;
+}
