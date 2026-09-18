@@ -7,3 +7,10 @@ export const CATEGORY_LABELS = {
 export const MARKETPLACE_LABELS = {
   ozon: 'Озон',
 };
+
+export const PERIOD_LABELS = {
+  month: 'Месяц',
+  halfyear: 'Полгода',
+  year: 'Год',
+  custom: 'Даты',
+};

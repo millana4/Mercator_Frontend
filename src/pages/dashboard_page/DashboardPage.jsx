@@ -1,8 +1,9 @@
-// ---------- Страница дашборда: пустое состояние — тело наполним на шагах 8–11 ----------
+// ---------- Страница дашборда: настройки дашборда — тело блоков аналитики на шагах 9–11 ----------
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Header from '../../components/header/Header';
 import EmptyDashboardBanner from '../../components/empty_dashboard_banner/EmptyDashboardBanner';
+import DashboardControls from '../../components/dashboard_controls/DashboardControls';
 import { selectIsLoggedIn } from '../../store/slices/authSlice';
 import { fetchSubscriptions } from '../../store/slices/settingsSlice';
 
@@ -23,7 +24,12 @@ function DashboardPage() {
     <div>
       <Header />
       {!hasAccess && <EmptyDashboardBanner />}
-      {hasAccess && <p>Дашборд (наполним на шагах 8–11)</p>}
+      {hasAccess && (
+        <>
+          <DashboardControls />
+          <p>Блоки аналитики — на шагах 9–11</p>
+        </>
+      )}
     </div>
   );
 }

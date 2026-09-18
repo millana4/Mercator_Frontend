@@ -1,0 +1,139 @@
+// ---------- Настройки дашборда: категория/маркетплейс/гео (из подписок) + период ----------
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { CATEGORY_LABELS, MARKETPLACE_LABELS, PERIOD_LABELS } from '../../constants/labels';
+import { setSelection, setPeriod, setCustomRange } from '../../store/slices/dashboardSlice';
+import styles from './DashboardControls.module.css';
+
+const PERIODS = ['month', 'halfyear', 'year', 'custom'];
+
+const uniqueBy = (rows, filterFn, field) => [...new Set(rows.filter(filterFn).map((r) => r[field]))];
+
+function DashboardControls() {
+  const dispatch = useDispatch();
+  const savedSets = useSelector((s) => s.settings.savedSets);
+  const { category, marketplace, geo, period, customFrom, customTo } = useSelector(
+    (s) => s.dashboard,
+  );
+
+  const categories = [...new Set(savedSets.map((s) => s.category))];
+  const marketplaces = uniqueBy(savedSets, (s) => s.category === category, 'marketplace');
+  const geos = uniqueBy(
+    savedSets, (s) => s.category === category && s.marketplace === marketplace, 'geo',
+  );
+
+  // подставляем первую доступную категорию, если текущая не выбрана
+  // или перестала существовать (например, подписку удалили в настройках)
+  useEffect(() => {
+    if (categories.length === 0) return;
+    if (category && categories.includes(category)) return;
+
+    const firstCategory = categories[0];
+    const mpOptions = uniqueBy(savedSets, (s) => s.category === firstCategory, 'marketplace');
+    const firstMarketplace = mpOptions[0];
+    const geoOptions = uniqueBy(
+      savedSets,
+      (s) => s.category === firstCategory && s.marketplace === firstMarketplace,
+      'geo',
+    );
+    dispatch(setSelection({
+      category: firstCategory, marketplace: firstMarketplace, geo: geoOptions[0],
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [savedSets]);
+
+  const handleCategoryChange = (value) => {
+    const mpOptions = uniqueBy(savedSets, (s) => s.category === value, 'marketplace');
+    const newMarketplace = mpOptions.length === 1 ? mpOptions[0] : '';
+    const geoOptions = newMarketplace
+      ? uniqueBy(savedSets, (s) => s.category === value && s.marketplace === newMarketplace, 'geo')
+      : [];
+    dispatch(setSelection({
+      category: value, marketplace: newMarketplace,
+      geo: geoOptions.length === 1 ? geoOptions[0] : '',
+    }));
+  };
+
+  const handleMarketplaceChange = (value) => {
+    const geoOptions = uniqueBy(savedSets, (s) => s.category === category && s.marketplace === value, 'geo');
+    dispatch(setSelection({
+      category, marketplace: value, geo: geoOptions.length === 1 ? geoOptions[0] : '',
+    }));
+  };
+
+  const handleGeoChange = (value) => {
+    dispatch(setSelection({ category, marketplace, geo: value }));
+  };
+
+  const handlePeriodClick = (value) => {
+    if (value === 'custom' && (!customFrom || !customTo)) {
+      const to = new Date();
+      const from = new Date();
+      from.setDate(from.getDate() - 30);
+      const iso = (d) => d.toISOString().slice(0, 10);
+      dispatch(setCustomRange({ from: iso(from), to: iso(to) }));
+    }
+    dispatch(setPeriod(value));
+  };
+
+  return (
+    <div className={styles.bar}>
+      <div className={styles.fieldGroup}>
+        <span className={styles.label}>Категория</span>
+        <select value={category || ''} onChange={(e) => handleCategoryChange(e.target.value)}>
+          {categories.map((c) => (
+            <option key={c} value={c}>{CATEGORY_LABELS[c] || c}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className={styles.fieldGroup}>
+        <span className={styles.label}>Маркетплейс</span>
+        <select value={marketplace || ''} onChange={(e) => handleMarketplaceChange(e.target.value)}>
+          {marketplaces.map((m) => (
+            <option key={m} value={m}>{MARKETPLACE_LABELS[m] || m}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className={styles.fieldGroup}>
+        <span className={styles.label}>Гео</span>
+        <select value={geo || ''} onChange={(e) => handleGeoChange(e.target.value)}>
+          {geos.map((g) => (
+            <option key={g} value={g}>{g}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className={styles.periodGroup}>
+        {PERIODS.map((p) => (
+          <button
+            key={p}
+            className={`${styles.segBtn} ${period === p ? styles.active : ''}`}
+            onClick={() => handlePeriodClick(p)}
+          >
+            {PERIOD_LABELS[p]}
+          </button>
+        ))}
+        {period === 'custom' && (
+          <>
+            <span className={styles.label}>с</span>
+            <input
+              type="date"
+              value={customFrom}
+              onChange={(e) => dispatch(setCustomRange({ from: e.target.value, to: customTo }))}
+            />
+            <span className={styles.label}>по</span>
+            <input
+              type="date"
+              value={customTo}
+              onChange={(e) => dispatch(setCustomRange({ from: customFrom, to: e.target.value }))}
+            />
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default DashboardControls;
