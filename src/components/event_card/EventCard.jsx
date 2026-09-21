@@ -24,7 +24,7 @@ function EventCard({ status, isPanelOpen, onToggleParticipants }) {
     <div className={styles.section} style={{ color: `var(${colorVar})` }}>
       <div className={styles.title}>
         Событие: {headerText}
-        {direction !== 'none' && <InfoTooltip text={TREND_EVENT_TOOLTIP} />}
+         <InfoTooltip text={TREND_EVENT_TOOLTIP} />
       </div>
       {event && (
         <>

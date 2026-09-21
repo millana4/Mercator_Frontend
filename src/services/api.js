@@ -32,7 +32,14 @@ export const getSnapshot = (params) => api.get('/snapshot', { params }).then((re
 export const getEventParticipants = (eventId) =>
   api.get(`/events/${eventId}/participants`).then((res) => res.data);
 
-export const getCardMeasurements = (sku, days = 30) =>
-  api.get(`/cards/${sku}/measurements`, { params: { days } }).then((res) => res.data);
+function toNaiveIso(date) {
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+}
+
+export const getCardMeasurements = (sku, dateFrom, dateTo) =>
+  api.get(`/cards/${sku}/measurements`, {
+    params: { date_from: toNaiveIso(dateFrom), date_to: toNaiveIso(dateTo) },
+  }).then((res) => res.data);
 
 export default api;

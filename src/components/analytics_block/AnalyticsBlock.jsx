@@ -1,8 +1,8 @@
 // ---------- Один блок аналитики: шапка + Тренд/Событие + график + участники ----------
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { getLevels, getSnapshot } from '../../services/api';
-import { getCurrentEvent, getParticipantsTitle } from '../../utils/analytics';
+import { getCurrentEvent, getParticipantsTitle, getPeriodRange } from '../../utils/analytics';
 import { fmtLevelKey } from '../../utils/format';
 import TrendCard from '../trend_card/TrendCard';
 import EventCard from '../event_card/EventCard';
@@ -12,7 +12,7 @@ import Dropdown from '../dropdown/Dropdown';
 import styles from './AnalyticsBlock.module.css';
 
 function AnalyticsBlock({ level, headerLabel, fixedLevelKey, fixedLevelKeyLabel }) {
-  const { category, marketplace, geo } = useSelector((s) => s.dashboard);
+  const { category, marketplace, geo, period, customFrom, customTo } = useSelector((s) => s.dashboard);
   const isFixed = Boolean(fixedLevelKey);
 
   const [availableKeys, setAvailableKeys] = useState([]);
@@ -20,8 +20,7 @@ function AnalyticsBlock({ level, headerLabel, fixedLevelKey, fixedLevelKeyLabel 
   const [selectedKey, setSelectedKey] = useState(null);
   const [ewmaSnapshot, setEwmaSnapshot] = useState(null);
   const [macdSnapshot, setMacdSnapshot] = useState(null);
-  const [trendPanelOpen, setTrendPanelOpen] = useState(false);
-  const [eventPanelOpen, setEventPanelOpen] = useState(false);
+  const [panel, setPanel] = useState(null); // { kind: 'trend'|'event', event } | null
 
   const levelKey = isFixed ? fixedLevelKey : selectedKey;
 
@@ -45,8 +44,7 @@ function AnalyticsBlock({ level, headerLabel, fixedLevelKey, fixedLevelKeyLabel 
     if (!category || !marketplace || !geo || !levelKey) return;
     const params = { category, marketplace, geo, level, level_key: levelKey };
 
-    setTrendPanelOpen(false);
-    setEventPanelOpen(false);
+    setPanel(null);
 
     setEwmaSnapshot(null);
     getSnapshot({ ...params, algorithm: 'EWMA' })
@@ -74,11 +72,23 @@ function AnalyticsBlock({ level, headerLabel, fixedLevelKey, fixedLevelKeyLabel 
       ? { state: 'hidden' }
       : { state: 'ready', event: eventEvent };
 
+  const chartReady = ewmaSnapshot && ewmaSnapshot.meta.sufficient;
+
+  const periodRange = useMemo(() => {
+    if (!chartReady) return null;
+    return getPeriodRange(period, customFrom, customTo, ewmaSnapshot.curve);
+  }, [chartReady, period, customFrom, customTo, ewmaSnapshot]);
+
+  const handleSelectChartEvent = (kind, event) => setPanel({ kind, event });
+
+  const toggleTrendButton = () => setPanel((cur) =>
+    (cur && cur.kind === 'trend' ? null : { kind: 'trend', event: trendEvent }));
+  const toggleEventButton = () => setPanel((cur) =>
+    (cur && cur.kind === 'event' ? null : { kind: 'event', event: eventEvent }));
+
   if (!isFixed && !levelsLoaded) return null;
   if (!isFixed && availableKeys.length === 0) return null;
   if (levelKey && trendStatus.state === 'hidden' && eventStatus.state === 'hidden') return null;
-
-  const chartReady = ewmaSnapshot && ewmaSnapshot.meta.sufficient;
 
   return (
     <div className={styles.block}>
@@ -99,21 +109,24 @@ function AnalyticsBlock({ level, headerLabel, fixedLevelKey, fixedLevelKeyLabel 
         <div className={styles.data}>
           <TrendCard
             status={trendStatus}
-            isPanelOpen={trendPanelOpen}
-            onToggleParticipants={() => setTrendPanelOpen((v) => !v)}
+            isPanelOpen={panel !== null && panel.kind === 'trend'}
+            onToggleParticipants={toggleTrendButton}
           />
           <EventCard
             status={eventStatus}
-            isPanelOpen={eventPanelOpen}
-            onToggleParticipants={() => setEventPanelOpen((v) => !v)}
+            isPanelOpen={panel !== null && panel.kind === 'event'}
+            onToggleParticipants={toggleEventButton}
           />
         </div>
         <div className={styles.chart}>
-          {chartReady ? (
+          {chartReady && periodRange ? (
             <MarketChart
               curve={ewmaSnapshot.curve}
               trendEvents={ewmaSnapshot.events}
               eventEvents={macdSnapshot && macdSnapshot.meta.sufficient ? macdSnapshot.events : []}
+              periodFrom={periodRange.from}
+              periodTo={periodRange.to}
+              onSelectEvent={handleSelectChartEvent}
             />
           ) : (
             <p className={styles.muted}>Недостаточно точек для графика.</p>
@@ -121,20 +134,18 @@ function AnalyticsBlock({ level, headerLabel, fixedLevelKey, fixedLevelKeyLabel 
         </div>
       </div>
 
-      {trendPanelOpen && trendEvent && (
+      {panel && periodRange && (
         <ParticipantsPanel
-          title={getParticipantsTitle('trend', trendEvent.direction)}
-          colorVar={trendEvent.direction === 'up' ? '--trend-up' : '--trend-down'}
-          eventId={trendEvent.id}
-          onClose={() => setTrendPanelOpen(false)}
-        />
-      )}
-      {eventPanelOpen && eventEvent && (
-        <ParticipantsPanel
-          title={getParticipantsTitle('event', eventEvent.direction)}
-          colorVar={eventEvent.direction === 'up' ? '--event-up' : '--event-down'}
-          eventId={eventEvent.id}
-          onClose={() => setEventPanelOpen(false)}
+          title={getParticipantsTitle(panel.kind, panel.event)}
+          colorVar={
+            panel.kind === 'trend'
+              ? (panel.event.direction === 'up' ? '--trend-up' : '--trend-down')
+              : (panel.event.direction === 'up' ? '--event-up' : '--event-down')
+          }
+          eventId={panel.event.id}
+          periodFrom={periodRange.from}
+          periodTo={periodRange.to}
+          onClose={() => setPanel(null)}
         />
       )}
     </div>

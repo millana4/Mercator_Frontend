@@ -1,4 +1,5 @@
 // ---------- Определение актуального тренда/события и подготовка данных для графика ----------
+import { fmtDate } from './format';
 
 export function getCurrentEvent(events) {
   if (!events || events.length === 0) return null;
@@ -54,6 +55,7 @@ export function buildRuns(points) {
   return runs;
 }
 
+// ---------- Заголовок списка участников: тип + направление + диапазон дат ----------
 const PARTICIPANTS_TITLES = {
   'trend-down': 'Карточки-участники тренда на снижение цен',
   'trend-up': 'Карточки-участники тренда на повышение цен',
@@ -61,6 +63,10 @@ const PARTICIPANTS_TITLES = {
   'event-up': 'Карточки-участники события роста цен',
 };
 
-export function getParticipantsTitle(kind, direction) {
-  return PARTICIPANTS_TITLES[`${kind}-${direction}`] || '';
+export function getParticipantsTitle(kind, event) {
+  const base = PARTICIPANTS_TITLES[`${kind}-${event.direction}`] || '';
+  const range = event.is_open
+    ? `${fmtDate(event.start_at)} — по настоящее время`
+    : `${fmtDate(event.start_at)} — ${fmtDate(event.end_at)}`;
+  return `${base} ${range}`;
 }

@@ -1,7 +1,6 @@
 // ---------- График: линия EWMA (цвет по тренду) + линии/точки MACD, оси, всплывающие подсказки ----------
 import { useState } from 'react';
-import { useSelector } from 'react-redux';
-import { getPeriodRange, assignEventToPoints, buildRuns } from '../../utils/analytics';
+import { assignEventToPoints, buildRuns } from '../../utils/analytics';
 import { fmtShortDate, fmtDate, fmtArrow, fmtPct } from '../../utils/format';
 import { TREND_LABEL, EVENT_LABEL, CHART_TRAJECTORY_TOOLTIP } from '../../constants/labels';
 import ChartTooltip from '../chart_tooltip/ChartTooltip';
@@ -29,15 +28,13 @@ function findClosestIndex(curve, targetDate) {
   return bestIdx;
 }
 
-function MarketChart({ curve, trendEvents, eventEvents }) {
-  const { period, customFrom, customTo } = useSelector((s) => s.dashboard);
-  const [tooltip, setTooltip] = useState(null); // { x, y, color, content }
+function MarketChart({ curve, trendEvents, eventEvents, periodFrom, periodTo, onSelectEvent }) {
+  const [tooltip, setTooltip] = useState(null);
 
   const sortedCurve = [...curve].sort((a, b) => new Date(a.parsed_at) - new Date(b.parsed_at));
-  const { from, to } = getPeriodRange(period, customFrom, customTo, sortedCurve);
   const sliceCurve = sortedCurve.filter((p) => {
     const t = new Date(p.parsed_at).getTime();
-    return t >= from.getTime() && t <= to.getTime();
+    return t >= periodFrom.getTime() && t <= periodTo.getTime();
   });
 
   if (sliceCurve.length < 2) {
@@ -122,6 +119,7 @@ function MarketChart({ curve, trendEvents, eventEvents }) {
                   height={plotH}
                   fill="transparent"
                   style={{ cursor: 'pointer' }}
+                  onClick={() => onSelectEvent('trend', run.event)}
                   onMouseEnter={(e) => showTooltip(e.clientX, e.clientY, colorVar, (
                     <>
                       <div><b>Тренд: {TREND_LABEL[run.event.direction]}</b></div>
@@ -141,7 +139,7 @@ function MarketChart({ curve, trendEvents, eventEvents }) {
         {eventEvents.map((ev, ei) => {
           const startT = new Date(ev.start_at).getTime();
           const endT = new Date(ev.end_at).getTime();
-          if (endT < from.getTime() || startT > to.getTime()) return null;
+          if (endT < periodFrom.getTime() || startT > periodTo.getTime()) return null;
 
           const colorVar = ev.direction === 'up' ? '--event-up' : '--event-down';
           const isSinglePoint = ev.start_at === ev.end_at;
@@ -159,6 +157,7 @@ function MarketChart({ curve, trendEvents, eventEvents }) {
                 stroke="var(--bg-card)"
                 strokeWidth="0.75"
                 style={{ cursor: 'pointer' }}
+                onClick={() => onSelectEvent('event', ev)}
                 onMouseEnter={(e) => showTooltip(e.clientX, e.clientY, colorVar, eventTooltipContent(ev))}
                 onMouseLeave={hideTooltip}
               />
@@ -178,13 +177,7 @@ function MarketChart({ curve, trendEvents, eventEvents }) {
 
           return (
             <g key={ei}>
-              <path
-                d={d}
-                fill="none"
-                stroke="var(--bg-card)"
-                strokeWidth={MACD_LINE_WIDTH + 1.5}
-                strokeLinecap="round"
-              />
+              <path d={d} fill="none" stroke="var(--bg-card)" strokeWidth={MACD_LINE_WIDTH + 1.5} strokeLinecap="round" />
               <path d={d} fill="none" stroke={`var(${colorVar})`} strokeWidth={MACD_LINE_WIDTH} strokeLinecap="round" />
               <rect
                 x={x(fromIdx)}
@@ -193,6 +186,7 @@ function MarketChart({ curve, trendEvents, eventEvents }) {
                 height={plotH}
                 fill="transparent"
                 style={{ cursor: 'pointer' }}
+                onClick={() => onSelectEvent('event', ev)}
                 onMouseEnter={(e) => showTooltip(e.clientX, e.clientY, colorVar, eventTooltipContent(ev))}
                 onMouseLeave={hideTooltip}
               />

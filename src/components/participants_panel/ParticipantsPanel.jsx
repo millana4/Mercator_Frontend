@@ -1,18 +1,30 @@
 // ---------- Раскрывающийся список участников тренда/события ----------
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { getEventParticipants } from '../../services/api';
 import ParticipantRow from '../participant_row/ParticipantRow';
 import CardDynamicsChart from '../card_dynamics_chart/CardDynamicsChart';
 import styles from './ParticipantsPanel.module.css';
 
-function ParticipantsPanel({ title, colorVar, eventId, onClose }) {
+function ParticipantsPanel({ title, colorVar, eventId, periodFrom, periodTo, onClose }) {
   const [participants, setParticipants] = useState(null);
   const [selectedSku, setSelectedSku] = useState(null);
+  const requestIdRef = useRef(0);
 
   useEffect(() => {
+    const requestId = ++requestIdRef.current;
+    setSelectedSku(null);
+    // participants не сбрасываем в null здесь намеренно — старый список
+    // остаётся на экране, пока не придут новые данные, чтобы высота
+    // панели не скакала между "Загрузка..." и полным списком.
     getEventParticipants(eventId)
-      .then(setParticipants)
-      .catch(() => setParticipants([]));
+      .then((data) => {
+        if (requestIdRef.current !== requestId) return;
+        setParticipants(data);
+      })
+      .catch(() => {
+        if (requestIdRef.current !== requestId) return;
+        setParticipants([]);
+      });
   }, [eventId]);
 
   const selected = participants && participants.find((p) => p.sku === selectedSku);
@@ -39,7 +51,9 @@ function ParticipantsPanel({ title, colorVar, eventId, onClose }) {
         </div>
       )}
 
-      {selected && <CardDynamicsChart sku={selected.sku} name={selected.name} />}
+      {selected && (
+        <CardDynamicsChart sku={selected.sku} name={selected.name} periodFrom={periodFrom} periodTo={periodTo} />
+      )}
 
       <div className={styles.actions}>
         <button className={styles.btnSecondary} onClick={onClose}>
