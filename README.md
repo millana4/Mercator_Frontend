@@ -1,16 +1,69 @@
-# React + Vite
+# Mercator — Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React-дашборд для сервиса аналитики Mercator: настройки категорий/маркетплейса/гео, тренды и события по алгоритмам EWMA/MACD, график рынка с участниками и историей цены каждой карточки.
 
-Currently, two official plugins are available:
+## Запуск
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+1. Клонируйте репозиторий:
+```
+git clone <URL-репозитория>
+cd mercator-frontend
+```
 
-## React Compiler
+2. Установите зависимости и запустите dev-сервер:
+```
+npm install
+npm run dev
+```
+Фронтенд будет доступен по адресу: http://localhost:5173
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Для работы фронтенда должен быть поднят бэкенд **Mercator Analytics** (`docker compose up` в его репозитории, `http://localhost:8020`, Swagger — `http://localhost:8020/docs`). Тестовый пользователь: `user` / `1234`.
 
-## Expanding the ESLint configuration
+## Структура проекта
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```
+mercator-frontend/
+├── src/
+│   ├── components/     # переиспользуемые компоненты (Header, Dropdown, графики, участники и т.д.)
+│   ├── pages/           # DashboardPage, SettingsPage
+│   ├── store/           # Redux Toolkit: theme, auth, settings, dashboard
+│   ├── services/        # api.js — все запросы к бэкенду
+│   ├── constants/       # подписи для кодов из API, тексты подсказок
+│   ├── utils/            # форматирование, работа с событиями/периодом
+│   ├── App.jsx, App.css # роутинг, цветовые токены темы
+│   └── main.jsx
+└── vite.config.js
+```
+
+## Функциональность
+
+- Логин по JWT, подписки пользователя на категорию/маркетплейс/гео
+- Дашборд: выбор категории/маркетплейса/гео/периода (Месяц/Полгода/Год/Даты)
+- Блоки аналитики по категории и подкатегориям: тренд (EWMA) и событие (MACD)
+- График рынка с раскраской по направлению, клик по любому отрезку/точке — список участников именно этого периода
+- История цены конкретной карточки в рублях за выбранный на дашборде период, с отметками «не было в наличии»
+- Светлая/тёмная тема
+
+## Технологии
+
+- React 19, React Router
+- Redux Toolkit
+- Axios
+- Vite
+- CSS Modules
+
+## Примечания
+
+- Токен хранится в `localStorage`, подставляется во все запросы автоматически
+- Адрес бэкенда — `VITE_API_BASE_URL` (по умолчанию `http://localhost:8020/api/v1`)
+- CORS на бэкенде настроен под `http://localhost:5173`
+
+## Деплой
+
+Продакшн-сборка:
+```
+npm run build
+```
+Результат — статические файлы в `dist/`. Перед сборкой задать `VITE_API_BASE_URL` на реальный адрес бэкенда (через `.env` или переменную окружения сборки).
+
+На сервере фронтенд разворачивается отдельным контейнером (nginx, отдаёт содержимое `dist/`), рядом с контейнерами Mercator Analytics — общий Dockerfile для этого пока не написан, планируется отдельным шагом.
