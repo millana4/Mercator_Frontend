@@ -3,11 +3,16 @@ import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { CATEGORY_LABELS, MARKETPLACE_LABELS, PERIOD_LABELS } from '../../constants/labels';
 import { setSelection, setPeriod, setCustomRange } from '../../store/slices/dashboardSlice';
+import Dropdown from '../dropdown/Dropdown';
 import styles from './DashboardControls.module.css';
 
 const PERIODS = ['month', 'halfyear', 'year', 'custom'];
 
 const uniqueBy = (rows, filterFn, field) => [...new Set(rows.filter(filterFn).map((r) => r[field]))];
+
+function toOptions(values, labels) {
+  return values.map((v) => ({ value: v, label: labels[v] || v }));
+}
 
 function DashboardControls() {
   const dispatch = useDispatch();
@@ -80,29 +85,29 @@ function DashboardControls() {
     <div className={styles.bar}>
       <div className={styles.fieldGroup}>
         <span className={styles.label}>Категория</span>
-        <select value={category || ''} onChange={(e) => handleCategoryChange(e.target.value)}>
-          {categories.map((c) => (
-            <option key={c} value={c}>{CATEGORY_LABELS[c] || c}</option>
-          ))}
-        </select>
+        <Dropdown
+          value={category}
+          options={toOptions(categories, CATEGORY_LABELS)}
+          onChange={handleCategoryChange}
+        />
       </div>
 
       <div className={styles.fieldGroup}>
         <span className={styles.label}>Маркетплейс</span>
-        <select value={marketplace || ''} onChange={(e) => handleMarketplaceChange(e.target.value)}>
-          {marketplaces.map((m) => (
-            <option key={m} value={m}>{MARKETPLACE_LABELS[m] || m}</option>
-          ))}
-        </select>
+        <Dropdown
+          value={marketplace}
+          options={toOptions(marketplaces, MARKETPLACE_LABELS)}
+          onChange={handleMarketplaceChange}
+        />
       </div>
 
       <div className={styles.fieldGroup}>
         <span className={styles.label}>Гео</span>
-        <select value={geo || ''} onChange={(e) => handleGeoChange(e.target.value)}>
-          {geos.map((g) => (
-            <option key={g} value={g}>{g}</option>
-          ))}
-        </select>
+        <Dropdown
+          value={geo}
+          options={toOptions(geos, {})}
+          onChange={handleGeoChange}
+        />
       </div>
 
       <div className={styles.periodGroup}>

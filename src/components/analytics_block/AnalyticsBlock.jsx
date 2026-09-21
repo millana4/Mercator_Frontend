@@ -8,6 +8,7 @@ import TrendCard from '../trend_card/TrendCard';
 import EventCard from '../event_card/EventCard';
 import MarketChart from '../market_chart/MarketChart';
 import ParticipantsPanel from '../participants_panel/ParticipantsPanel';
+import Dropdown from '../dropdown/Dropdown';
 import styles from './AnalyticsBlock.module.css';
 
 function AnalyticsBlock({ level, headerLabel, fixedLevelKey, fixedLevelKeyLabel }) {
@@ -86,11 +87,11 @@ function AnalyticsBlock({ level, headerLabel, fixedLevelKey, fixedLevelKeyLabel 
         {isFixed ? (
           <span className={styles.headerValue}>{fixedLevelKeyLabel}</span>
         ) : (
-          <select value={selectedKey || ''} onChange={(e) => setSelectedKey(e.target.value)}>
-            {availableKeys.map((k) => (
-              <option key={k} value={k}>{fmtLevelKey(k)}</option>
-            ))}
-          </select>
+          <Dropdown
+            value={selectedKey}
+            options={availableKeys.map((k) => ({ value: k, label: fmtLevelKey(k) }))}
+            onChange={setSelectedKey}
+          />
         )}
       </div>
 

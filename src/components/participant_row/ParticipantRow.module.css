@@ -13,7 +13,7 @@
 }
 
 .row.active {
-  background: var(--bg-card-alt);
+  background: var(--hover-highlight);
 }
 
 .row a {

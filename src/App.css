@@ -30,6 +30,8 @@
   --shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 
   --label-text: var(--text);
+
+  --hover-highlight: #e4e7ee;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -62,6 +64,8 @@
     --shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
 
     --label-text: var(--text-muted);
+
+    --hover-highlight: #2c313c;
   }
 }
 
@@ -95,6 +99,8 @@
   --shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
 
   --label-text: var(--text-muted);
+
+  --hover-highlight: #2c313c;
 }
 
 body {

@@ -25,7 +25,6 @@
   white-space: nowrap;
 }
 
-.bar select,
 .bar input[type='date'] {
   background: var(--bg-card-alt);
   color: var(--text);

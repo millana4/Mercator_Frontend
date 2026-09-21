@@ -1,5 +1,6 @@
 // ---------- Одна строка настроек: категория → маркетплейс → гео ----------
 import { CATEGORY_LABELS, MARKETPLACE_LABELS } from '../../constants/labels';
+import Dropdown from '../dropdown/Dropdown';
 import styles from './SettingsRow.module.css';
 
 function SettingsRow({ row, index, catalog, onChange, onRemove }) {
@@ -15,34 +16,28 @@ function SettingsRow({ row, index, catalog, onChange, onRemove }) {
 
   return (
     <div className={styles.row}>
-      <select value={row.category} onChange={(e) => onChange(index, 'category', e.target.value)}>
-        <option value="">— категория —</option>
-        {categories.map((c) => (
-          <option key={c} value={c}>{CATEGORY_LABELS[c] || c}</option>
-        ))}
-      </select>
+      <Dropdown
+        value={row.category}
+        placeholder="— категория —"
+        options={categories.map((c) => ({ value: c, label: CATEGORY_LABELS[c] || c }))}
+        onChange={(value) => onChange(index, 'category', value)}
+      />
 
-      <select
+      <Dropdown
         value={row.marketplace}
+        placeholder="— маркетплейс —"
         disabled={!row.category}
-        onChange={(e) => onChange(index, 'marketplace', e.target.value)}
-      >
-        <option value="">— маркетплейс —</option>
-        {marketplaces.map((m) => (
-          <option key={m} value={m}>{MARKETPLACE_LABELS[m] || m}</option>
-        ))}
-      </select>
+        options={marketplaces.map((m) => ({ value: m, label: MARKETPLACE_LABELS[m] || m }))}
+        onChange={(value) => onChange(index, 'marketplace', value)}
+      />
 
-      <select
+      <Dropdown
         value={row.geo}
+        placeholder="— гео —"
         disabled={!row.marketplace}
-        onChange={(e) => onChange(index, 'geo', e.target.value)}
-      >
-        <option value="">— гео —</option>
-        {geos.map((g) => (
-          <option key={g} value={g}>{g}</option>
-        ))}
-      </select>
+        options={geos.map((g) => ({ value: g, label: g }))}
+        onChange={(value) => onChange(index, 'geo', value)}
+      />
 
       <button className={styles.remove} onClick={() => onRemove(index)} title="Удалить строку">
         ×
