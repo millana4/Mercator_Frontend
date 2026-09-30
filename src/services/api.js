@@ -42,4 +42,19 @@ export const getCardMeasurements = (sku, dateFrom, dateTo) =>
     params: { date_from: toNaiveIso(dateFrom), date_to: toNaiveIso(dateTo) },
   }).then((res) => res.data);
 
+  
+// ---------- Товарные ниши ----------
+export const getNiches = (params) => api.get('/niches', { params }).then((res) => res.data);
+
+export const getNicheLimits = () => api.get('/niches/limits').then((res) => res.data);
+
+// payload: { category, marketplace, geo, description, reference_url }
+export const createNiche = (payload) => api.post('/niches', payload).then((res) => res.data);
+
+export const deleteNiche = (id) => api.delete(`/niches/${id}`).then((res) => res.data);
+
+// ниши с готовым результатом для блока «Товарная ниша»; params: { category, marketplace, geo }
+export const getDashboardNiches = (params) =>
+  api.get('/niches/dashboard', { params }).then((res) => res.data);
+
 export default api;

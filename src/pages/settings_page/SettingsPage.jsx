@@ -1,9 +1,10 @@
-// ---------- Страница настроек: данные пользователя + подписки на аналитику ----------
+// ---------- Страница настроек: данные пользователя, подписки на категории, товарные ниши ----------
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Header from '../../components/header/Header';
 import ProtectedRoute from '../../components/protected_route/ProtectedRoute';
 import SettingsRow from '../../components/settings_row/SettingsRow';
+import NichesBlock from '../../components/niches_block/NichesBlock';
 import {
   fetchCatalog, fetchSubscriptions, saveSubscriptions,
   addRow, removeRow, updateRow, setSaveError,
@@ -44,7 +45,7 @@ function SettingsPage() {
           </div>
 
           <div className={styles.block}>
-            <h2 className={styles.sectionTitle}>Настройки аналитики</h2>
+            <h2 className={styles.sectionTitle}>Категории</h2>
             <div className={styles.rowsList}>
               {draftRows.length === 0 && (
                 <p className={styles.muted}>Строк пока нет — нажмите «Добавить».</p>
@@ -71,6 +72,8 @@ function SettingsPage() {
               {buttonLabel}
             </button>
           </div>
+
+          <NichesBlock />
         </div>
       </ProtectedRoute>
     </div>

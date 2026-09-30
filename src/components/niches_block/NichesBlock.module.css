@@ -1,0 +1,133 @@
+.block {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px 22px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sectionTitle {
+  font-size: 18px;
+  margin: 0 0 6px 0;
+}
+
+.muted {
+  font-size: 16px;
+  color: var(--text-muted);
+  margin: 4px 0;
+}
+
+.limitNote {
+  font-size: 16px;
+  color: var(--text-muted);
+  margin: 14px 0;
+}
+
+.notice {
+  font-size: 16px;
+  color: var(--text);
+  margin: 4px 0 16px 0;
+}
+
+.check {
+  color: var(--accent);
+  font-weight: 700;
+  margin-right: 6px;
+}
+
+.errorNote {
+  font-size: 15px;
+  color: var(--danger);
+  margin: 2px 0;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-card-alt);
+}
+
+.itemMain {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.itemTitle {
+  font-size: 16px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.ownBadge {
+  margin-left: 8px;
+  padding: 1px 8px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+.itemMeta {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.statusFailed {
+  color: var(--danger);
+}
+
+.remove {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.remove:hover {
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+.btnSecondary {
+  align-self: flex-start;
+  background: var(--bg-card-alt);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 10px 18px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.btnSecondary:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.btnSecondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
