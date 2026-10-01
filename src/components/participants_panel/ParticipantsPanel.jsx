@@ -7,12 +7,19 @@ import styles from './ParticipantsPanel.module.css';
 
 function ParticipantsPanel({ title, colorVar, eventId, periodFrom, periodTo, onClose }) {
   const [participants, setParticipants] = useState(null);
-  const [selectedSku, setSelectedSku] = useState(null);
   const requestIdRef = useRef(0);
+
+  // Выбранная карточка привязана к событию: при смене события старый выбор
+  // не совпадает по ключу и считается сброшенным - без setState внутри эффекта.
+  const [selection, setSelection] = useState({ eventId: null, sku: null });
+  const selectedSku = selection.eventId === eventId ? selection.sku : null;
+  const setSelectedSku = (next) => setSelection((cur) => {
+    const current = cur.eventId === eventId ? cur.sku : null;
+    return { eventId, sku: typeof next === 'function' ? next(current) : next };
+  });
 
   useEffect(() => {
     const requestId = ++requestIdRef.current;
-    setSelectedSku(null);
     // participants не сбрасываем в null здесь намеренно — старый список
     // остаётся на экране, пока не придут новые данные, чтобы высота
     // панели не скакала между "Загрузка..." и полным списком.

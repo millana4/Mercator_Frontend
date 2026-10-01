@@ -5,7 +5,7 @@ export const CATEGORY_LABELS = {
 };
 
 export const MARKETPLACE_LABELS = {
-  ozon: 'Озон',
+  ozon: 'Ozon',
 };
 
 export const PERIOD_LABELS = {
@@ -45,7 +45,7 @@ export const NICHE_STATUS_LABELS = {
   query_generation: 'Составление поискового запроса',
   selecting: 'Подбор карточек',
   ranking: 'Подбор карточек',
-  active: 'Сбор данных',
+  active: 'Подбор карточек завершён, снимаются замеры',
   failed: 'Ошибка обработки',
 };
 
@@ -74,4 +74,9 @@ export const nicheLimitText = ({ used, limit }) => {
   }
   return `${head} Сейчас можете добавить в отслеживание ещё ${left} `
     + `${plural(left, ['нишу', 'ниши', 'ниш'])}.`;
+};
+
+export const NICHE_DETAILS_LABELS = {
+  show: 'Подробнее о товарной нише',
+  hide: 'Скрыть подробности',
 };

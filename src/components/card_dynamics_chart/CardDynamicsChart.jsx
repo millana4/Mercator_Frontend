@@ -22,13 +22,21 @@ function CardDynamicsChart({ sku, name, periodFrom, periodTo }) {
   const pointColor = theme === 'dark' ? '#bd80ff' : '#7b03fc';
 
   const [allPoints, setAllPoints] = useState(null);
-  const [tooltip, setTooltip] = useState(null);
   const requestIdRef = useRef(0);
+
+  // Подсказка привязана к карточке и периоду: при их смене старая подсказка
+  // не совпадает по ключу и считается скрытой - без setState внутри эффекта.
+  const requestKey = `${sku}|${periodFrom ? periodFrom.getTime() : ''}|${periodTo ? periodTo.getTime() : ''}`;
+  const [tooltipState, setTooltipState] = useState({ key: null, tooltip: null });
+  const tooltip = tooltipState.key === requestKey ? tooltipState.tooltip : null;
+  const setTooltip = (next) => setTooltipState((cur) => {
+    const current = cur.key === requestKey ? cur.tooltip : null;
+    return { key: requestKey, tooltip: typeof next === 'function' ? next(current) : next };
+  });
 
   useEffect(() => {
     if (!periodFrom || !periodTo) return;
     const requestId = ++requestIdRef.current;
-    setTooltip(null);
     getCardMeasurements(sku, periodFrom, periodTo)
       .then((data) => {
         if (requestIdRef.current !== requestId) return;
