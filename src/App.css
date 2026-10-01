@@ -1,4 +1,3 @@
-/* ---------- Цветовые токены темы — перенесены из HTML-мокапа ---------- */
 :root {
   --bg: #eef0f4;
   --bg-card: #ffffff;
@@ -14,16 +13,16 @@
   --radius-sm: 6px;
 
   --trend-up: #4f91e7;
-  --trend-down: #c29824;
+  --trend-down: #5cc77c;
   --trend-none: #45484d98;
   --event-up: #084fdf;
-  --event-down: #5c4802;
+  --event-down: #0f8a3c;
   --event-none: #45484d98;
 
   --badge-up-bg: #e8f0fe;
   --badge-up-text: #2358c4;
-  --badge-down-bg: #faf1d6;
-  --badge-down-text: #8a6a00;
+  --badge-down-bg: #e2f5e8;
+  --badge-down-text: #1b7a3a;
   --badge-none-bg: #eef0f3;
   --badge-none-text: #45484d98;
 
@@ -48,16 +47,16 @@
     --danger: #ff6b57;
 
     --trend-up: #4f91e7;
-    --trend-down: #c29824;
+    --trend-down: #a3e4b4;
     --trend-none: #8a919c;
     --event-up: #084fdf;
-    --event-down: #5c4802;
+    --event-down: #1fbf63;
     --event-none: #8a919c;
 
     --badge-up-bg: #1c2c46;
     --badge-up-text: #8fbaff;
-    --badge-down-bg: #3a3016;
-    --badge-down-text: #ffd75e;
+    --badge-down-bg: #173a24;
+    --badge-down-text: #7ee2a0;
     --badge-none-bg: #262a33;
     --badge-none-text: #9aa1ab;
 
@@ -83,16 +82,16 @@
   --danger: #ff6b57;
 
   --trend-up: #bcdcff;
-  --trend-down: #e8d290;
+  --trend-down: #a3e4b4;
   --trend-none: #8a919c;
   --event-up: #2f6fed;
-  --event-down: #ffcf33;
+  --event-down: #1fbf63;
   --event-none: #8a919c;
 
   --badge-up-bg: #1c2c46;
   --badge-up-text: #8fbaff;
-  --badge-down-bg: #3a3016;
-  --badge-down-text: #ffd75e;
+  --badge-down-bg: #173a24;
+  --badge-down-text: #7ee2a0;
   --badge-none-bg: #262a33;
   --badge-none-text: #9aa1ab;
 

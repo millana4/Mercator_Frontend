@@ -10,9 +10,10 @@ import {
   clearCreateResult, fetchNicheLimits, fetchNiches, removeNiche,
 } from '../../store/slices/nichesSlice';
 import styles from './NichesBlock.module.css';
+import { capitalize } from '../../utils/text';
 
-// Подпись: запрос нейросети; пока его нет - описание пользователя или ссылка
-const nicheTitle = (n) => n.search_query || n.description || n.reference_url;
+// Подпись: запрос нейросети с заглавной буквы; пока его нет - описание пользователя или ссылка
+const nicheTitle = (n) => capitalize(n.search_query || n.description) || n.reference_url;
 
 // pending - ещё не отправлена в ядро; дальше - статус обработки в ядре
 const nicheStatusKey = (n) => (n.status === 'pending' ? 'pending' : (n.core_status || 'submitted'));

@@ -14,8 +14,23 @@ const PAD_R = 14;
 const PAD_T = 20;
 const PAD_B = 28;
 
-const MACD_LINE_WIDTH = 5;
-const MACD_POINT_RADIUS = 5;
+// Три ступени толщины: участки без тренда - самые тонкие, тренды - средние,
+// события (линии и точки) - самые заметные
+const NONE_LINE_WIDTH = 1.5;
+const TREND_LINE_WIDTH = 3;
+const MACD_LINE_WIDTH = 6;
+const MACD_POINT_RADIUS = 6;
+
+// Разрыв между соседними трендами противоположных направлений, в единицах viewBox (~px)
+const TREND_GAP = 2;
+
+// Точка на отрезке a→b на расстоянии dist от a; null, если отрезок короче dist
+function pointAlong(ax, ay, bx, by, dist) {
+  const len = Math.hypot(bx - ax, by - ay);
+  if (len <= dist) return null;
+  const t = dist / len;
+  return [ax + (bx - ax) * t, ay + (by - ay) * t];
+}
 
 function findClosestIndex(curve, targetDate) {
   const t = new Date(targetDate).getTime();
@@ -103,14 +118,41 @@ function MarketChart({ curve, trendEvents, eventEvents, periodFrom, periodTo, on
 
         {runs.map((run, ri) => {
           const colorVar = run.direction === 'up' ? '--trend-up' : run.direction === 'down' ? '--trend-down' : '--trend-none';
+
+          // тренд сразу после тренда противоположного направления - начинаем с отступом
+          const prev = ri > 0 ? runs[ri - 1] : null;
+          const gapBefore = prev !== null && run.to > run.from
+            && prev.direction !== 'none' && run.direction !== 'none'
+            && prev.direction !== run.direction;
+
           let d = '';
-          for (let k = run.from; k <= run.to; k++) {
-            d += `${k === run.from ? 'M' : 'L'} ${x(k).toFixed(1)} ${y(points[k].level_log).toFixed(1)} `;
+          let firstK = run.from;
+          if (gapBefore) {
+            const start = pointAlong(
+              x(run.from), y(points[run.from].level_log),
+              x(run.from + 1), y(points[run.from + 1].level_log),
+              TREND_GAP,
+            );
+            if (start) {
+              d = `M ${start[0].toFixed(1)} ${start[1].toFixed(1)} `;
+            } else {
+              d = `M ${x(run.from + 1).toFixed(1)} ${y(points[run.from + 1].level_log).toFixed(1)} `;
+            }
+            firstK = run.from + 1;
+          }
+          for (let k = firstK; k <= run.to; k++) {
+            const cmd = d === '' && k === firstK ? 'M' : 'L';
+            d += `${cmd} ${x(k).toFixed(1)} ${y(points[k].level_log).toFixed(1)} `;
           }
           const hasEvent = run.event !== null;
           return (
             <g key={ri}>
-              <path d={d} fill="none" stroke={`var(${colorVar})`} strokeWidth="2.5" />
+              <path
+                d={d}
+                fill="none"
+                stroke={`var(${colorVar})`}
+                strokeWidth={run.direction === 'none' ? NONE_LINE_WIDTH : TREND_LINE_WIDTH}
+              />
               {hasEvent && (
                 <rect
                   x={x(run.from)}

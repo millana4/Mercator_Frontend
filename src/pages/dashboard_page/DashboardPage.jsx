@@ -10,9 +10,8 @@ import { CATEGORY_LABELS, NICHE_DETAILS_LABELS } from '../../constants/labels';
 import { getDashboardNiches } from '../../services/api';
 import { selectIsLoggedIn } from '../../store/slices/authSlice';
 import { fetchSubscriptions } from '../../store/slices/settingsSlice';
+import { capitalize } from '../../utils/text';
 
-// Первая буква заглавная: запрос нейросети приходит строчными
-const capitalize = (text) => (text ? text.charAt(0).toUpperCase() + text.slice(1) : text);
 
 // Ниши с готовым результатом, видимые пользователю. Подпись - запрос нейросети,
 // пока его нет - описание или ссылка. Объявлен вне компонента: ссылка постоянная.
