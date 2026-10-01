@@ -1,5 +1,25 @@
 // ---------- Авторизация: токен пользователя, сохраняется между перезагрузками ----------
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { getMe } from '../../services/api';
+
+// После повторного открытия вкладки токен есть (localStorage), а имени нет.
+// Восстанавливаем его по /auth/me; статус ошибки нужен, чтобы отличить отказ от недоступности.
+export const restoreSession = createAsyncThunk(
+  'auth/restoreSession',
+  async (_, { rejectWithValue }) => {
+    try {
+      return await getMe();
+    } catch (err) {
+      return rejectWithValue(err?.response?.status ?? null);
+    }
+  },
+);
+
+const clearAuth = (state) => {
+  state.token = null;
+  state.username = null;
+  localStorage.removeItem('token');
+};
 
 const authSlice = createSlice({
   name: 'auth',
@@ -13,11 +33,17 @@ const authSlice = createSlice({
       state.username = action.payload.username;
       localStorage.setItem('token', action.payload.token);
     },
-    logOut: (state) => {
-      state.token = null;
-      state.username = null;
-      localStorage.removeItem('token');
-    },
+    logOut: clearAuth,
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(restoreSession.fulfilled, (state, action) => {
+        state.username = action.payload.username;
+      })
+      .addCase(restoreSession.rejected, (state, action) => {
+        // 401 - токен истёк или недействителен: выходим. Сервер недоступен - токен не трогаем.
+        if (action.payload === 401) clearAuth(state);
+      });
   },
 });
 

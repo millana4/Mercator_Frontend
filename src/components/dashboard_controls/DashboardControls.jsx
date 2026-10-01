@@ -27,23 +27,26 @@ function DashboardControls() {
     savedSets, (s) => s.category === category && s.marketplace === marketplace, 'geo',
   );
 
-  // подставляем первую доступную категорию, если текущая не выбрана
-  // или перестала существовать (например, подписку удалили в настройках)
+  // Выбор восстановлен с прошлого раза или ещё пуст. Оставляем его, если такая связка
+  // есть в подписках; иначе - та же категория с доступными маркетплейсом и гео,
+  // а если и категории нет (подписку удалили) - первая подписка.
   useEffect(() => {
     if (categories.length === 0) return;
-    if (category && categories.includes(category)) return;
+    const comboExists = savedSets.some(
+      (s) => s.category === category && s.marketplace === marketplace && s.geo === geo,
+    );
+    if (comboExists) return;
 
-    const firstCategory = categories[0];
-    const mpOptions = uniqueBy(savedSets, (s) => s.category === firstCategory, 'marketplace');
-    const firstMarketplace = mpOptions[0];
+    const targetCategory = category && categories.includes(category) ? category : categories[0];
+    const mpOptions = uniqueBy(savedSets, (s) => s.category === targetCategory, 'marketplace');
+    const targetMarketplace = mpOptions.includes(marketplace) ? marketplace : mpOptions[0];
     const geoOptions = uniqueBy(
       savedSets,
-      (s) => s.category === firstCategory && s.marketplace === firstMarketplace,
+      (s) => s.category === targetCategory && s.marketplace === targetMarketplace,
       'geo',
     );
-    dispatch(setSelection({
-      category: firstCategory, marketplace: firstMarketplace, geo: geoOptions[0],
-    }));
+    const targetGeo = geoOptions.includes(geo) ? geo : geoOptions[0];
+    dispatch(setSelection({ category: targetCategory, marketplace: targetMarketplace, geo: targetGeo }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [savedSets]);
 
