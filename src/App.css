@@ -19,6 +19,9 @@
   --event-down: #0f8a3c;
   --event-none: #45484d98;
 
+  --change-up: #628fe9;
+  --change-down: #35c772;
+
   --badge-up-bg: #e8f0fe;
   --badge-up-text: #2358c4;
   --badge-down-bg: #e2f5e8;
@@ -52,6 +55,9 @@
     --event-up: #084fdf;
     --event-down: #1fbf63;
     --event-none: #8a919c;
+
+    --change-up: #8fb4ff;
+    --change-down: #6ee7a0;
 
     --badge-up-bg: #1c2c46;
     --badge-up-text: #8fbaff;
