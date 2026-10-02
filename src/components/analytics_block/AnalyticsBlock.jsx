@@ -1,5 +1,5 @@
 // ---------- Один блок аналитики: шапка + Тренд/Событие + график + участники ----------
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { getLevels, getSnapshot } from '../../services/api';
 import { getCurrentEvent, getParticipantsTitle, getPeriodRange } from '../../utils/analytics';
@@ -25,8 +25,9 @@ const loadLevelOptions = ({ category, marketplace, geo, level }) =>
 function AnalyticsBlock({
   level, headerLabel, fixedLevelKey, fixedLevelKeyLabel,
   loadOptions = loadLevelOptions,   // (params) => Promise<[{ value, label, ... }]>
-  renderDetails,                    // (option) => содержимое панели подробностей
+  renderDetails,                    // (option, periodRange) => содержимое панели подробностей
   detailsLabels,                    // { show, hide } - подписи кнопки подробностей
+  pendingText,                      // текст вместо аналитики, когда у выбранного варианта ready === false
 }) {
   const { category, marketplace, geo, period, customFrom, customTo } = useSelector((s) => s.dashboard);
   const isFixed = Boolean(fixedLevelKey);
@@ -44,6 +45,8 @@ function AnalyticsBlock({
     : (availableOptions[0]?.value ?? null);
   const levelKey = isFixed ? fixedLevelKey : chosenKey;
   const selectedOption = availableOptions.find((o) => o.value === levelKey) || null;
+  // Расчёта по варианту ещё нет (ниша: подбор завершён, замеры копятся) - снепшоты не запрашиваются
+  const isPending = Boolean(selectedOption && selectedOption.ready === false);
 
   const snapshotKey = levelKey ? `${optionsKey}|${levelKey}` : null;
   const [snapshots, setSnapshots] = useState({ key: null, EWMA: null, MACD: null });
@@ -56,6 +59,51 @@ function AnalyticsBlock({
   const panel = panelState.key === snapshotKey ? panelState.panel : null; // { kind, event } | null
   const detailsOpen = detailsState.key === snapshotKey && detailsState.open;
 
+    // ---------- Скрытие подробностей без прыжка страницы ----------
+  // Освободившаяся высота остаётся распоркой в конце блока и убирается по мере
+  // прокрутки вверх. Высота распорки меняется через style, без состояния React.
+  const blockRef = useRef(null);
+  const spacerRef = useRef(null);
+  const collapseRef = useRef(null);       // { blockHeight, scrollY } в момент нажатия «Скрыть»
+  const releaseSpacerRef = useRef(null);  // снять распорку и отписаться от прокрутки
+
+  useLayoutEffect(() => {
+    const pending = collapseRef.current;
+    const block = blockRef.current;
+    const spacer = spacerRef.current;
+    if (!pending || !block || !spacer) return;
+    collapseRef.current = null;
+    if (releaseSpacerRef.current) releaseSpacerRef.current();
+
+    let height = Math.max(pending.blockHeight - block.offsetHeight, 0);
+    spacer.style.height = `${height}px`;
+    window.scrollTo(0, pending.scrollY);  // до отрисовки: если браузер успел сдвинуть прокрутку
+    let lastY = window.scrollY;
+
+    function release() {
+      window.removeEventListener('scroll', onScroll);
+      spacer.style.height = '0px';
+      releaseSpacerRef.current = null;
+    }
+    function onScroll() {
+      const y = window.scrollY;
+      if (y < lastY) {
+        height = Math.max(height - (lastY - y), 0);
+        spacer.style.height = `${height}px`;
+        if (height === 0) release();
+      }
+      lastY = y;
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    releaseSpacerRef.current = release;
+  }, [detailsOpen]);
+
+  // при уходе со страницы - отписаться от прокрутки
+  useEffect(() => () => {
+    if (releaseSpacerRef.current) releaseSpacerRef.current();
+  }, []);
+
   useEffect(() => {
     if (isFixed || !category || !marketplace || !geo) return;
     let cancelled = false;
@@ -66,7 +114,7 @@ function AnalyticsBlock({
   }, [isFixed, level, category, marketplace, geo, optionsKey, loadOptions]);
 
   useEffect(() => {
-    if (!category || !marketplace || !geo || !levelKey) return;
+    if (!category || !marketplace || !geo || !levelKey || isPending) return;
     let cancelled = false;
     const params = { category, marketplace, geo, level, level_key: levelKey };
     ['EWMA', 'MACD'].forEach((algorithm) => {
@@ -81,7 +129,7 @@ function AnalyticsBlock({
         });
     });
     return () => { cancelled = true; };
-  }, [category, marketplace, geo, level, levelKey, snapshotKey]);
+  }, [category, marketplace, geo, level, levelKey, snapshotKey, isPending]);
 
   const trendEvent = ewmaSnapshot && ewmaSnapshot.meta.sufficient ? getCurrentEvent(ewmaSnapshot.events) : null;
   const eventEvent = macdSnapshot && macdSnapshot.meta.sufficient ? getCurrentEvent(macdSnapshot.events) : null;
@@ -101,9 +149,11 @@ function AnalyticsBlock({
   const chartReady = ewmaSnapshot && ewmaSnapshot.meta.sufficient;
 
   const periodRange = useMemo(() => {
+    // Расчёта нет - кривой нет: период от текущего момента (нужен графикам цены аналогов)
+    if (isPending) return getPeriodRange(period, customFrom, customTo, []);
     if (!chartReady) return null;
     return getPeriodRange(period, customFrom, customTo, ewmaSnapshot.curve);
-  }, [chartReady, period, customFrom, customTo, ewmaSnapshot]);
+  }, [isPending, chartReady, period, customFrom, customTo, ewmaSnapshot]);
 
   // Панель участников и подробности привязаны к текущему срезу
   const updatePanel = (fn) => setPanelState((cur) => ({
@@ -115,18 +165,27 @@ function AnalyticsBlock({
   const toggleEventButton = () => updatePanel((cur) =>
     (cur && cur.kind === 'event' ? null : { kind: 'event', event: eventEvent }));
   const closePanel = () => updatePanel(() => null);
-  const toggleDetails = () => setDetailsState((cur) => ({
-    key: snapshotKey, open: !(cur.key === snapshotKey && cur.open),
-  }));
+  const toggleDetails = () => {
+    if (detailsOpen && blockRef.current) {
+      // скрытие: запомнить высоту блока и прокрутку - распорку поставит useLayoutEffect
+      collapseRef.current = { blockHeight: blockRef.current.offsetHeight, scrollY: window.scrollY };
+    } else if (releaseSpacerRef.current) {
+      // повторное открытие: распорка не нужна
+      releaseSpacerRef.current();
+    }
+    setDetailsState((cur) => ({
+      key: snapshotKey, open: !(cur.key === snapshotKey && cur.open),
+    }));
+  };
 
   if (!isFixed && !levelsLoaded) return null;
   if (!isFixed && availableOptions.length === 0) return null;
-  if (levelKey && trendStatus.state === 'hidden' && eventStatus.state === 'hidden') return null;
+  if (levelKey && !isPending && trendStatus.state === 'hidden' && eventStatus.state === 'hidden') return null;
 
   const hasDetails = Boolean(renderDetails && detailsLabels && selectedOption);
 
   return (
-    <div className={styles.block}>
+    <div className={styles.block} ref={blockRef}>
       <div className={styles.header}>
         <span className={styles.headerLabel}>{headerLabel}</span>
         {isFixed ? (
@@ -146,9 +205,12 @@ function AnalyticsBlock({
       </div>
 
       {hasDetails && detailsOpen && (
-        <div className={styles.details}>{renderDetails(selectedOption)}</div>
+        <div className={styles.details}>{renderDetails(selectedOption, periodRange)}</div>
       )}
 
+      {isPending ? (
+        <p className={styles.muted}>{pendingText}</p>
+      ) : (
       <div className={styles.body}>
         <div className={styles.data}>
           <TrendCard
@@ -177,6 +239,7 @@ function AnalyticsBlock({
           )}
         </div>
       </div>
+      )}
 
       {panel && periodRange && (
         <ParticipantsPanel
@@ -192,6 +255,7 @@ function AnalyticsBlock({
           onClose={closePanel}
         />
       )}
+      <div ref={spacerRef} aria-hidden="true" />
     </div>
   );
 }

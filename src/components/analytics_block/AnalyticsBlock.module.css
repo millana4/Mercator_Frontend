@@ -8,6 +8,11 @@
   box-shadow: var(--shadow);
 }
 
+/* последний блок страницы - такой же отступ снизу, как между блоками */
+.block:last-child {
+  margin-bottom: 16px;
+}
+
 .header {
   display: flex;
   align-items: center;

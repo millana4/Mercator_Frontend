@@ -57,4 +57,8 @@ export const deleteNiche = (id) => api.delete(`/niches/${id}`).then((res) => res
 export const getDashboardNiches = (params) =>
   api.get('/niches/dashboard', { params }).then((res) => res.data);
 
+// до 30 самых близких активных карточек ниши, по убыванию близости
+export const getNicheAnalogs = (id) =>
+  api.get(`/niches/${id}/analogs`).then((res) => res.data);
+
 export default api;

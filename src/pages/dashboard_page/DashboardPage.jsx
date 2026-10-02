@@ -6,7 +6,9 @@ import EmptyDashboardBanner from '../../components/empty_dashboard_banner/EmptyD
 import DashboardControls from '../../components/dashboard_controls/DashboardControls';
 import AnalyticsBlock from '../../components/analytics_block/AnalyticsBlock';
 import NicheDetails from '../../components/niche_details/NicheDetails';
-import { CATEGORY_LABELS, NICHE_DETAILS_LABELS } from '../../constants/labels';
+import {
+  CATEGORY_LABELS, NICHE_DETAILS_LABELS, NICHE_PENDING_ANALYTICS_TEXT,
+} from '../../constants/labels';
 import { getDashboardNiches } from '../../services/api';
 import { selectIsLoggedIn } from '../../store/slices/authSlice';
 import { fetchSubscriptions } from '../../store/slices/settingsSlice';
@@ -20,6 +22,7 @@ const loadNicheOptions = ({ category, marketplace, geo }) =>
     value: n.id,
     label: capitalize(n.search_query || n.description) || n.reference_url,
     niche: n,
+    ready: n.ready,   // false - расчёта ещё нет, в блоке заглушка вместо аналитики
   })));
 
 function DashboardPage() {
@@ -57,7 +60,10 @@ function DashboardPage() {
                 headerLabel="Товарная ниша"
                 loadOptions={loadNicheOptions}
                 detailsLabels={NICHE_DETAILS_LABELS}
-                renderDetails={(option) => <NicheDetails niche={option.niche} />}
+                pendingText={NICHE_PENDING_ANALYTICS_TEXT}
+                renderDetails={(option, periodRange) => (
+                  <NicheDetails niche={option.niche} periodRange={periodRange} />
+                )}
               />
             </>
           )}

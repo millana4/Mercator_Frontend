@@ -66,7 +66,7 @@ const PARTICIPANTS_TITLES = {
 export function getParticipantsTitle(kind, event) {
   const base = PARTICIPANTS_TITLES[`${kind}-${event.direction}`] || '';
   const range = event.is_open
-    ? `${fmtDate(event.start_at)} — по настоящее время`
-    : `${fmtDate(event.start_at)} — ${fmtDate(event.end_at)}`;
+    ? `${fmtDate(event.start_at)} – по настоящее время`
+    : `${fmtDate(event.start_at)} – ${fmtDate(event.end_at)}`;
   return `${base} ${range}`;
 }

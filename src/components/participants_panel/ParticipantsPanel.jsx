@@ -1,6 +1,7 @@
 // ---------- Раскрывающийся список участников тренда/события ----------
 import { useEffect, useRef, useState } from 'react';
 import { getEventParticipants } from '../../services/api';
+import { titleWithCount } from '../../constants/labels';
 import ParticipantRow from '../participant_row/ParticipantRow';
 import CardDynamicsChart from '../card_dynamics_chart/CardDynamicsChart';
 import styles from './ParticipantsPanel.module.css';
@@ -38,7 +39,9 @@ function ParticipantsPanel({ title, colorVar, eventId, periodFrom, periodTo, onC
 
   return (
     <div className={styles.panel}>
-      <div className={styles.title} style={{ color: `var(${colorVar})` }}>{title}</div>
+      <div className={styles.title} style={{ color: `var(${colorVar})` }}>
+        {participants && participants.length > 0 ? titleWithCount(title, participants.length) : title}
+      </div>
 
       {participants === null && <p className={styles.muted}>Загрузка…</p>}
       {participants && participants.length === 0 && (

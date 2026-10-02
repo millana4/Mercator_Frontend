@@ -1,7 +1,9 @@
-// ---------- Подробности товарной ниши: описание и ссылка на референс, как их задал пользователь ----------
+// ---------- Подробности товарной ниши: описание и ссылка на референс, как их задал пользователь,
+// и товары-аналоги по степени схожести ----------
+import NicheAnalogs from '../niche_analogs/NicheAnalogs';
 import styles from './NicheDetails.module.css';
 
-function NicheDetails({ niche }) {
+function NicheDetails({ niche, periodRange }) {
   return (
     <div className={styles.root}>
       <div className={styles.row}>
@@ -18,6 +20,7 @@ function NicheDetails({ niche }) {
           <span>—</span>
         )}
       </div>
+      <NicheAnalogs nicheId={niche.id} periodRange={periodRange} />
     </div>
   );
 }

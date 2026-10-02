@@ -119,14 +119,16 @@ function CardDynamicsChart({ sku, name, periodFrom, periodTo }) {
     return <p className={styles.muted}>Замеров за этот период нет.</p>;
   }
 
-  // Точки со временем и ссылкой на предыдущий замер с ценой - для третьей строки подсказки
+  // Точки со временем и ссылкой на предыдущий замер с ценой - для третьей строки подсказки.
+  // Обычный цикл, а не map: менять переменную внутри колбэка запрещает react-hooks/immutability.
+  const points = [];
   let lastPriced = null;
-  const points = allPoints.map((p) => {
+  for (const p of allPoints) {
     const date = new Date(p.parsed_at);
     const item = { date, ms: date.getTime(), price: p.price, prev: p.price !== null ? lastPriced : null };
     if (p.price !== null) lastPriced = item;
-    return item;
-  });
+    points.push(item);
+  }
 
   const withPrice = points.filter((p) => p.price !== null);
   if (withPrice.length < 2) {
