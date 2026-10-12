@@ -7,4 +7,7 @@ services:
     container_name: mercator-frontend
     ports:
       - "80:80"
+    # Имя сервера внутри контейнера: nginx передаёт /api/ в аналитику (порт 8020 сервера)
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     restart: unless-stopped
