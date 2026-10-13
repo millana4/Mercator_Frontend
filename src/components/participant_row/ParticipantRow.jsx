@@ -1,16 +1,12 @@
 // ---------- Одна строка списка участников: название + ссылка + кнопка динамики ----------
-// note - необязательная подпись под названием (у аналогов ниши - цена за штуку)
 import styles from './ParticipantRow.module.css';
 
-function ParticipantRow({ participant, isSelected, onShowDynamics, note = null }) {
+function ParticipantRow({ participant, isSelected, onShowDynamics }) {
   return (
     <div className={`${styles.row} ${isSelected ? styles.active : ''}`}>
-      <div className={styles.main}>
-        <a href={participant.url} target="_blank" rel="noopener noreferrer">
-          {participant.name}
-        </a>
-        {note && <span className={styles.note}>{note}</span>}
-      </div>
+      <a href={participant.url} target="_blank" rel="noopener noreferrer">
+        {participant.name}
+      </a>
       <button className={styles.btnToggle} onClick={() => onShowDynamics(participant.sku)}>
         Посмотреть динамику
       </button>

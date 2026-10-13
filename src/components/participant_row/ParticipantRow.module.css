@@ -40,15 +40,3 @@
 .btnToggle:hover {
   border-color: var(--accent);
 }
-
-.main {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.note {
-  font-size: 14px;
-  color: var(--text-muted);
-}
