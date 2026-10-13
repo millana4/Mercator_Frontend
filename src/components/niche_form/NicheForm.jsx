@@ -1,4 +1,5 @@
-// ---------- Форма добавления ниши: связка из подписок, описание и/или ссылка на референс ----------
+// ---------- Форма добавления ниши: связка из подписок, ссылка на референс (обязательна),
+// описание (по желанию) ----------
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Dropdown from '../dropdown/Dropdown';
@@ -79,21 +80,19 @@ function NicheForm({ onDone, onCancel }) {
       setLocalError('Выберите категорию, маркетплейс и гео.');
       return;
     }
-    if (!description && !referenceUrl) {
-      setLocalError('Заполните описание или ссылку на референс.');
+    if (!referenceUrl) {
+      setLocalError('Укажите ссылку на карточку-референс: похожие товары подбираются по ней.');
       return;
     }
-    if (referenceUrl) {
-      const urlError = referenceUrlError(form.marketplace, referenceUrl);
-      if (urlError) {
-        setLocalError(urlError);
-        return;
-      }
+    const urlError = referenceUrlError(form.marketplace, referenceUrl);
+    if (urlError) {
+      setLocalError(urlError);
+      return;
     }
     try {
       await dispatch(addNiche({
         category: form.category, marketplace: form.marketplace, geo: form.geo,
-        description: description || null, reference_url: referenceUrl || null,
+        description: description || null, reference_url: referenceUrl,
       })).unwrap();
       onDone();
     } catch {
@@ -130,27 +129,31 @@ function NicheForm({ onDone, onCancel }) {
         />
       </div>
 
-      <p className={styles.hint}>Заполните хотя бы одно поле: описание или ссылку.</p>
-
-      <label className={styles.field}>
-        <span className={styles.label}>Описание</span>
-        <textarea
-          className={styles.input}
-          rows={3}
-          value={form.description}
-          onChange={setText('description')}
-          placeholder="Например: лёгкое хлопковое платье для девочки 7–9 лет"
-        />
-      </label>
+      <p className={styles.hint}>
+        Ссылка на карточку-референс обязательна: похожие товары подбираются по ней.
+        Описание — по желанию.
+      </p>
 
       <label className={styles.field}>
         <span className={styles.label}>Ссылка на референс</span>
         <input
           className={styles.input}
           type="url"
+          required
           value={form.referenceUrl}
           onChange={setText('referenceUrl')}
           placeholder="https://www.ozon.ru/product/...-123456789/"
+        />
+      </label>
+
+      <label className={styles.field}>
+        <span className={styles.label}>Описание (по желанию)</span>
+        <textarea
+          className={styles.input}
+          rows={3}
+          value={form.description}
+          onChange={setText('description')}
+          placeholder="Например: лёгкое хлопковое платье для девочки 7–9 лет"
         />
       </label>
 

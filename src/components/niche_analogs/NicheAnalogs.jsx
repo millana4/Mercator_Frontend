@@ -1,7 +1,7 @@
 // ---------- Товары-аналоги ниши: до 30 самых близких к референсу карточек, список с прокруткой ----------
 import { useEffect, useRef, useState } from 'react';
 import { getNicheAnalogs } from '../../services/api';
-import { NICHE_ANALOGS_LABELS, nicheAnalogsTitle } from '../../constants/labels';
+import { NICHE_ANALOGS_LABELS, nicheAnalogPriceText, nicheAnalogsTitle } from '../../constants/labels';
 import ParticipantRow from '../participant_row/ParticipantRow';
 import CardDynamicsChart from '../card_dynamics_chart/CardDynamicsChart';
 import styles from './NicheAnalogs.module.css';
@@ -48,6 +48,7 @@ function NicheAnalogs({ nicheId, periodRange }) {
               participant={a}
               isSelected={a.sku === selectedSku}
               onShowDynamics={(sku) => setSelection({ nicheId, sku })}
+              note={nicheAnalogPriceText(a.unit_price)}
             />
           ))}
         </div>

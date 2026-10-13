@@ -91,6 +91,10 @@ export const NICHE_ANALOGS_LABELS = {
 // заголовок списка аналогов с актуальным числом: «Товары-аналоги по степени схожести — 30 шт.»
 export const nicheAnalogsTitle = (n) => `${NICHE_ANALOGS_LABELS.title} — ${n} шт.`;
 
+// цена аналога за штуку (у многопака - за одну вещь): «1 299 ₽ за шт.»; нет цены - null
+export const nicheAnalogPriceText = (price) =>
+  (price == null ? null : `${Math.round(price).toLocaleString('ru-RU')} ₽ за шт.`);
+
 // заголовок списка с числом карточек: «… 17.09.2026 – 20.09.2026: 30 шт.»
 export const titleWithCount = (title, n) => `${title}: ${n} шт.`;
 
