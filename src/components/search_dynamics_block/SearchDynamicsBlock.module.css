@@ -1,0 +1,28 @@
+.block {
+  max-width: 1200px;
+  margin: 16px auto 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px 22px;
+  box-shadow: var(--shadow);
+}
+
+/* последний блок страницы - запас снизу под подсказку графика,
+   иначе подсказка у нижних точек уходит за край окна */
+.block:last-child {
+  margin-bottom: 160px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  font-size: 21px;
+}
+
+.headerLabel {
+  color: var(--label-text);
+  font-weight: 700;
+}

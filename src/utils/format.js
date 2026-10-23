@@ -58,3 +58,38 @@ export function fmtDateTimeShort(isoString) {
   const year = String(d.getFullYear()).slice(-2);
   return `${pad2(d.getDate())}.${pad2(d.getMonth() + 1)}.${year} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
 }
+
+
+// ---------- Анализ поисковой выдачи ----------
+const WEEKDAYS_SHORT = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];   // getDay(): 0 - воскресенье
+
+const fmtDec1 = (value) => value.toFixed(1).replace('.', ',');
+
+// «21 окт ср 18:37» - подпись снимка выдачи
+export function fmtRunLabel(isoString) {
+  const d = new Date(isoString);
+  return `${d.getDate()} ${MONTHS_SHORT[d.getMonth()]} ${WEEKDAYS_SHORT[d.getDay()]} `
+    + `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+}
+
+// «21 окт» и «ср» - подпись суток на оси (дата в мс или строкой)
+export function fmtDayMonth(value) {
+  const d = new Date(value);
+  return `${d.getDate()} ${MONTHS_SHORT[d.getMonth()]}`;
+}
+
+export function fmtWeekday(value) {
+  return WEEKDAYS_SHORT[new Date(value).getDay()];
+}
+
+// «46,5» и «46,5%»
+export const fmtNum1 = (value) => fmtDec1(value);
+export const fmtPct1 = (value) => `${fmtDec1(value)}%`;
+
+// «+7°» над графиком, «6,8°C» и «0,4 мм» в подсказке
+export function fmtTempShort(value) {
+  const r = Math.round(value);
+  return `${r > 0 ? '+' : ''}${r}°`;
+}
+export const fmtTemp = (value) => `${fmtDec1(value)}°C`;
+export const fmtPrecip = (value) => `${fmtDec1(value)} мм`;

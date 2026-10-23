@@ -29,6 +29,10 @@ export const getLevels = (params) => api.get('/levels', { params }).then((res) =
 
 export const getSnapshot = (params) => api.get('/snapshot', { params }).then((res) => res.data);
 
+// ряд повторяемости поисковой выдачи: { ready, points: [{ run_at, prev_run, repeat_pct, alert, ... }] }
+export const getSearchDynamics = (params) =>
+  api.get('/search-dynamics', { params }).then((res) => res.data);
+
 export const getEventParticipants = (eventId) =>
   api.get(`/events/${eventId}/participants`).then((res) => res.data);
 

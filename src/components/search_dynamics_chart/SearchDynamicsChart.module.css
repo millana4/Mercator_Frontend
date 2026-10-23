@@ -1,0 +1,32 @@
+.wrap {
+  width: 100%;
+}
+
+.caption {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
+.svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.axisLabel {
+  fill: var(--text-muted);
+  font-size: 11px;
+}
+
+.temp {
+  fill: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.muted {
+  color: var(--text-muted);
+  font-size: 16px;
+  margin: 0;
+}

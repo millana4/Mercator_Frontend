@@ -98,3 +98,18 @@ export const titleWithCount = (title, n) => `${title}: ${n} шт.`;
 export const NICHE_PENDING_ANALYTICS_TEXT =
   'Замеры снимаются — аналитика по нише появится чуть позже. '
   + 'Список товаров-аналогов уже доступен в подробностях.';
+
+
+// Блок «Анализ поисковой выдачи»
+export const SEARCH_DYNAMICS_LABELS = {
+  header: 'Анализ поисковой выдачи',
+  caption: 'Повторяемость SKU в выдаче',
+  repeated: 'Повторилось карточек',
+  alert: 'ВНИМАНИЕ! Выдача изменилась сильнее среднего!',
+  corridor: 'Средняя повторяемость',
+  emptyPeriod: 'Нет данных поисковой выдачи за выбранный период.',
+  weatherMean: 'Средняя за сутки',
+  weatherNow: 'В момент снимка',
+  weatherMinMax: 'Мин / макс за сутки',
+  weatherPrecip: 'Осадки за сутки',
+};

@@ -6,6 +6,7 @@ import EmptyDashboardBanner from '../../components/empty_dashboard_banner/EmptyD
 import DashboardControls from '../../components/dashboard_controls/DashboardControls';
 import AnalyticsBlock from '../../components/analytics_block/AnalyticsBlock';
 import NicheDetails from '../../components/niche_details/NicheDetails';
+import SearchDynamicsBlock from '../../components/search_dynamics_block/SearchDynamicsBlock';
 import {
   CATEGORY_LABELS, NICHE_DETAILS_LABELS, NICHE_PENDING_ANALYTICS_TEXT,
 } from '../../constants/labels';
@@ -65,6 +66,7 @@ function DashboardPage() {
                   <NicheDetails niche={option.niche} periodRange={periodRange} />
                 )}
               />
+              <SearchDynamicsBlock />
             </>
           )}
         </>
