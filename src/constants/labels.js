@@ -115,6 +115,7 @@ export const SEARCH_DYNAMICS_LABELS = {
   emptyPeriod: 'Нет данных поисковой выдачи за выбранный период.',
   weatherMean: 'Средняя за сутки',
   weatherMinMax: 'Мин / макс за сутки',
+  weatherCloud: 'Облачность',
   weatherPrecip: 'Осадки за сутки',
 };
 

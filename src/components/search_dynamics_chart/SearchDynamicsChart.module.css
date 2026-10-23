@@ -50,3 +50,41 @@
     stroke: #474c59;
   }
 }
+
+
+/* ---------- Значки погоды ---------- */
+.sun {
+  fill: #f7b500;
+  stroke: #f7b500;
+  stroke-width: 1.3;
+  stroke-linecap: round;
+}
+
+.drop {
+  fill: #3d8bfd;
+}
+
+.flake {
+  stroke: #4fb3f6;
+  stroke-width: 1.3;
+  stroke-linecap: round;
+}
+
+/* облако: светлое с контуром в светлой теме, серое в тёмной */
+.cloud {
+  fill: #e6e9ef;
+  stroke: #a3a9b4;
+  stroke-width: 1;
+}
+
+:root[data-theme='dark'] .cloud {
+  fill: #b8bec8;
+  stroke: #7d8491;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .cloud {
+    fill: #b8bec8;
+    stroke: #7d8491;
+  }
+}
