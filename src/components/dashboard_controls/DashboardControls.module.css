@@ -4,7 +4,7 @@
   align-items: center;
   gap: 22px;
   max-width: 1200px;
-  margin: 16px auto 0;
+  margin: 30px auto 0;   /* от шапки - как между блоками дашборда */
   padding: 18px 22px;
   background: var(--bg-card);
   border: 1px solid var(--border);

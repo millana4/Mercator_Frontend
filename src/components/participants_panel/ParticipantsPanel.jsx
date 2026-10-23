@@ -1,7 +1,7 @@
 // ---------- Раскрывающийся список участников тренда/события ----------
 import { useEffect, useRef, useState } from 'react';
 import { getEventParticipants } from '../../services/api';
-import { titleWithCount } from '../../constants/labels';
+import { PARTICIPANTS_PANEL_LABELS as L, titleWithCount } from '../../constants/labels';
 import ParticipantRow from '../participant_row/ParticipantRow';
 import CardDynamicsChart from '../card_dynamics_chart/CardDynamicsChart';
 import styles from './ParticipantsPanel.module.css';
@@ -43,9 +43,9 @@ function ParticipantsPanel({ title, colorVar, eventId, periodFrom, periodTo, onC
         {participants && participants.length > 0 ? titleWithCount(title, participants.length) : title}
       </div>
 
-      {participants === null && <p className={styles.muted}>Загрузка…</p>}
+      {participants === null && <p className={styles.muted}>{L.loading}</p>}
       {participants && participants.length === 0 && (
-        <p className={styles.muted}>Список участников пуст.</p>
+        <p className={styles.muted}>{L.empty}</p>
       )}
 
       {participants && participants.length > 0 && (
@@ -61,15 +61,24 @@ function ParticipantsPanel({ title, colorVar, eventId, periodFrom, periodTo, onC
         </div>
       )}
 
-      {selected && (
-        <CardDynamicsChart sku={selected.sku} name={selected.name} periodFrom={periodFrom} periodTo={periodTo} />
-      )}
-
+      {/* закрывает всю панель - и список, и график цены, если он открыт */}
       <div className={styles.actions}>
         <button className={styles.btnSecondary} onClick={onClose}>
-          Скрыть участников
+          {L.hideParticipants}
         </button>
       </div>
+
+      {selected && (
+        <>
+          <CardDynamicsChart sku={selected.sku} name={selected.name} url={selected.url}
+            periodFrom={periodFrom} periodTo={periodTo} />
+          <div className={styles.actions}>
+            <button className={styles.btnSecondary} onClick={() => setSelectedSku(null)}>
+              {L.hideChart}
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 }

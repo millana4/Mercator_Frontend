@@ -1,6 +1,6 @@
 .block {
   max-width: 1200px;
-  margin: 16px auto 0;
+  margin: 30px auto 0;   /* блок выдачи идёт после блоков аналитики - отступ как между ними */
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -18,7 +18,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 16px;
+  margin-bottom: 24px;
   font-size: 21px;
 }
 

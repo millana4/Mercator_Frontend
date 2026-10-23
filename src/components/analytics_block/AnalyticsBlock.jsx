@@ -246,18 +246,20 @@ function AnalyticsBlock({
       )}
 
       {panel && cardPeriodRange && (
-        <ParticipantsPanel
-          title={getParticipantsTitle(panel.kind, panel.event)}
-          colorVar={
-            panel.kind === 'trend'
-              ? (panel.event.direction === 'up' ? '--trend-up' : '--trend-down')
-              : (panel.event.direction === 'up' ? '--event-up' : '--event-down')
-          }
-          eventId={panel.event.id}
-          periodFrom={cardPeriodRange.from}
-          periodTo={cardPeriodRange.to}
-          onClose={closePanel}
-        />
+        <div className={styles.panel}>
+          <ParticipantsPanel
+            title={getParticipantsTitle(panel.kind, panel.event)}
+            colorVar={
+              panel.kind === 'trend'
+                ? (panel.event.direction === 'up' ? '--trend-up' : '--trend-down')
+                : (panel.event.direction === 'up' ? '--event-up' : '--event-down')
+            }
+            eventId={panel.event.id}
+            periodFrom={cardPeriodRange.from}
+            periodTo={cardPeriodRange.to}
+            onClose={closePanel}
+          />
+        </div>
       )}
       <div ref={spacerRef} aria-hidden="true" />
     </div>

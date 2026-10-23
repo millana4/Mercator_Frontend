@@ -3,9 +3,13 @@
 }
 
 .caption {
-  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 16px;
+  font-weight: 700;
   color: var(--text-muted);
-  margin-bottom: 2px;
+  margin-bottom: 8px;
 }
 
 .svg {
@@ -29,4 +33,20 @@
   color: var(--text-muted);
   font-size: 16px;
   margin: 0;
+}
+
+
+/* сетка поверх погодной подложки: в светлой теме белая, в тёмной - светлее рамок */
+.grid {
+  stroke: #ffffff;
+}
+
+:root[data-theme='dark'] .grid {
+  stroke: #474c59;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .grid {
+    stroke: #474c59;
+  }
 }

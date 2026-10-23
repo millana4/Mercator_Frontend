@@ -80,7 +80,7 @@ function buildDateTicks(fromMs, toMs, daily) {
   return { ticks, stepMs: (daily ? 1 : 7) * DAY_MS };
 }
 
-function CardDynamicsChart({ sku, name, periodFrom, periodTo }) {
+function CardDynamicsChart({ sku, name, url, periodFrom, periodTo }) {
   const theme = useSelector((s) => s.theme.value);
   // Жёлтый: в светлой теме темнее, чтобы линия и текст подсказки читались на белом
   const pointColor = theme === 'dark' ? '#ffd23f' : '#c08f00';
@@ -196,7 +196,10 @@ function CardDynamicsChart({ sku, name, periodFrom, periodTo }) {
         if (tooltip) setTooltip((t) => t && { ...t, x: e.clientX, y: e.clientY });
       }}
     >
-      <p className={styles.title}>Динамика цены за выбранный период: {name}</p>
+      <p className={styles.title}>
+        Динамика цены за выбранный период:{' '}
+        {url ? <a href={url} target="_blank" rel="noopener noreferrer">{name}</a> : name}
+      </p>
       <svg
         className={styles.svg}
         viewBox={`0 0 ${W} ${svgHeight}`}

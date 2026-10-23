@@ -2,9 +2,10 @@
 import { useState } from 'react';
 import { SEARCH_DYNAMICS_LABELS as L } from '../../constants/labels';
 import {
-  fmtDayMonth, fmtNum1, fmtPct1, fmtPrecip, fmtRunLabel, fmtTemp, fmtTempShort, fmtWeekday,
+  fmtDayMonth, fmtNum1, fmtPct1, fmtPrecip, fmtRunDay, fmtTemp, fmtTempShort, fmtWeekday,
 } from '../../utils/format';
 import ChartTooltip from '../chart_tooltip/ChartTooltip';
+import InfoTooltip from '../info_tooltip/InfoTooltip';
 import styles from './SearchDynamicsChart.module.css';
 
 const W = 1100;
@@ -38,6 +39,13 @@ function tempFill(t) {
   return `rgba(${t < 0 ? COLD_RGB : WARM_RGB}, ${(share * TEMP_MAX_OPACITY).toFixed(3)})`;
 }
 
+// Полночь суток, в которые попадает момент t (мс)
+function dayStart(t) {
+  const d = new Date(t);
+  d.setHours(0, 0, 0, 0);
+  return d.getTime();
+}
+
 function SearchDynamicsChart({ points, weather, periodFrom, periodTo }) {
   const [tooltip, setTooltip] = useState(null);
 
@@ -55,10 +63,10 @@ function SearchDynamicsChart({ points, weather, periodFrom, periodTo }) {
     return <p className={styles.muted}>{L.emptyPeriod}</p>;
   }
 
-  // Ось времени - все сутки с точками и погодой, по полсуток с краёв
+  // Ось времени - целые календарные сутки: от полуночи первого дня до полуночи после последнего
   const allTimes = [...slice.map((p) => p.t), ...weatherDays.map((w) => w.t)];
-  const domFrom = Math.min(...allTimes) - DAY_MS / 2;
-  const domTo = Math.max(...allTimes) + DAY_MS / 2;
+  const domFrom = dayStart(Math.min(...allTimes));
+  const domTo = dayStart(Math.max(...allTimes)) + DAY_MS;
   const plotW = W - PAD_L - PAD_R;
   const plotH = H - PAD_T - PAD_B;
   const x = (t) => PAD_L + ((t - domFrom) / (domTo - domFrom)) * plotW;
@@ -68,11 +76,8 @@ function SearchDynamicsChart({ points, weather, periodFrom, periodTo }) {
   // Сутки на оси: граница - полночь (тонкая линия), подпись даты - в полдень, посередине суток;
   // шаг подписей, чтобы они не наезжали друг на друга
   const dayStarts = [];
-  const firstDay = new Date(domFrom);
-  firstDay.setHours(0, 0, 0, 0);
-  for (let d = firstDay.getTime(); d <= domTo; d += DAY_MS) dayStarts.push(d);
+  for (let d = domFrom; d < domTo; d += DAY_MS) dayStarts.push(d);
   const tickStep = Math.max(1, Math.ceil(MIN_TICK_GAP / dayW));
-  const inDomain = (t) => t >= domFrom && t <= domTo;
 
   const linePath = slice
     .map((p, i) => `${i === 0 ? 'M' : 'L'} ${x(p.t).toFixed(1)} ${y(p.repeat_pct).toFixed(1)}`)
@@ -99,11 +104,12 @@ function SearchDynamicsChart({ points, weather, periodFrom, periodTo }) {
 
   const pointTooltip = (p) => (
     <>
-      <div>{fmtRunLabel(p.prev_run)} → {fmtRunLabel(p.run_at)}</div>
-      <div>{L.repeated}: {fmtPct1(p.repeat_pct)}</div>
+      <div className={styles.tipHead}>{fmtRunDay(p.run_at)} {L.comparedWith} {fmtRunDay(p.prev_run)}</div>
+      <div>{L.repeated} {fmtPct1(p.repeat_pct)}</div>
       {p.alert && (
         <>
           <div><b>{L.alert}</b></div>
+          <div><b>{L.alertText}</b></div>
           {has(p.band_low) && has(p.band_high) && (
             <div>{L.corridor}: {fmtNum1(p.band_low)}–{fmtPct1(p.band_high)}</div>
           )}
@@ -114,9 +120,7 @@ function SearchDynamicsChart({ points, weather, periodFrom, periodTo }) {
 
   const weatherTooltip = (w) => (
     <>
-      <div>{fmtRunLabel(w.run_at)}</div>
       {has(w.temp_mean) && <div>{L.weatherMean}: {fmtTemp(w.temp_mean)}</div>}
-      {has(w.temp_now) && <div>{L.weatherNow}: {fmtTemp(w.temp_now)}</div>}
       {has(w.temp_min) && has(w.temp_max) && (
         <div>{L.weatherMinMax}: {fmtNum1(w.temp_min)} / {fmtTemp(w.temp_max)}</div>
       )}
@@ -131,23 +135,27 @@ function SearchDynamicsChart({ points, weather, periodFrom, periodTo }) {
         if (tooltip) setTooltip((t) => t && { ...t, x: e.clientX, y: e.clientY });
       }}
     >
-      <div className={styles.caption}>{L.caption}</div>
+      <div className={styles.caption}>
+        <span>{L.caption}</span>
+        <InfoTooltip text={L.captionTooltip} />
+      </div>
 
       <svg className={styles.svg} viewBox={`0 0 ${W} ${H}`}>
-        {/* 1. Погода на каждые сутки: подложка и средняя температура над моментом снимка */}
+        {/* 1. Погода на каждые сутки: подложка клетки суток и средняя температура посередине */}
         {weatherDays.map((w) => {
-          const left = x(w.t - DAY_MS / 2);
+          const cellFrom = dayStart(w.t);
           const t = w.temp_mean;
           return (
             <g key={`w${w.run_at}`}>
-              <rect x={left} y={PAD_T - WEATHER_H} width={dayW} height={plotH + WEATHER_H}
+              <rect x={x(cellFrom)} y={PAD_T - WEATHER_H} width={dayW} height={plotH + WEATHER_H}
                 fill={tempFill(t)} />
               {has(t) && dayW >= MIN_TEMP_LABEL_W && (
-                <text x={x(w.t)} y={PAD_T - WEATHER_H / 2 + 4} textAnchor="middle" className={styles.temp}>
+                <text x={x(cellFrom + DAY_MS / 2)} y={PAD_T - WEATHER_H / 2 + 4} textAnchor="middle"
+                  className={styles.temp}>
                   {fmtTempShort(t)}
                 </text>
               )}
-              <rect x={left} y={PAD_T - WEATHER_H} width={dayW} height={WEATHER_H} fill="transparent"
+              <rect x={x(cellFrom)} y={PAD_T - WEATHER_H} width={dayW} height={WEATHER_H} fill="transparent"
                 onMouseEnter={(e) => show(e, '--text-muted', weatherTooltip(w))} onMouseLeave={hide} />
             </g>
           );
@@ -156,7 +164,7 @@ function SearchDynamicsChart({ points, weather, periodFrom, periodTo }) {
         {/* 2. Сетка 0-100% */}
         {[0, 25, 50, 75, 100].map((v) => (
           <g key={`g${v}`}>
-            <line x1={PAD_L} y1={y(v)} x2={W - PAD_R} y2={y(v)} stroke="var(--border)" strokeWidth="1" />
+            <line x1={PAD_L} y1={y(v)} x2={W - PAD_R} y2={y(v)} className={styles.grid} strokeWidth="1" />
             <text x={PAD_L - 8} y={y(v) + 4} textAnchor="end" className={styles.axisLabel}>{v}%</text>
           </g>
         ))}
@@ -167,15 +175,11 @@ function SearchDynamicsChart({ points, weather, periodFrom, periodTo }) {
           const noon = d + DAY_MS / 2;
           return (
             <g key={`d${d}`}>
-              {inDomain(d) && (
-                <line x1={x(d)} y1={PAD_T} x2={x(d)} y2={H - PAD_B} stroke="var(--border)" strokeWidth="0.5" />
-              )}
-              {inDomain(noon) && (
-                <text x={x(noon)} y={H - PAD_B + 16} textAnchor="middle" className={styles.axisLabel}>
-                  {fmtDayMonth(d)}
-                  <tspan x={x(noon)} dy="14">{fmtWeekday(d)}</tspan>
-                </text>
-              )}
+              <line x1={x(d)} y1={PAD_T} x2={x(d)} y2={H - PAD_B} className={styles.grid} strokeWidth="0.5" />
+              <text x={x(noon)} y={H - PAD_B + 16} textAnchor="middle" className={styles.axisLabel}>
+                {fmtDayMonth(d)}
+                <tspan x={x(noon)} dy="14">{fmtWeekday(d)}</tspan>
+              </text>
             </g>
           );
         })}

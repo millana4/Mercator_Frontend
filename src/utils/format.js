@@ -75,7 +75,7 @@ export function fmtRunLabel(isoString) {
 // «21 окт» и «ср» - подпись суток на оси (дата в мс или строкой)
 export function fmtDayMonth(value) {
   const d = new Date(value);
-  return `${d.getDate()} ${MONTHS_SHORT[d.getMonth()]}`;
+  return `${pad2(d.getDate())}.${pad2(d.getMonth() + 1)}`;
 }
 
 export function fmtWeekday(value) {
@@ -93,3 +93,10 @@ export function fmtTempShort(value) {
 }
 export const fmtTemp = (value) => `${fmtDec1(value)}°C`;
 export const fmtPrecip = (value) => `${fmtDec1(value)} мм`;
+
+
+// «17.10 сб» - день снимка выдачи, без времени
+export function fmtRunDay(isoString) {
+  const d = new Date(isoString);
+  return `${pad2(d.getDate())}.${pad2(d.getMonth() + 1)} ${WEEKDAYS_SHORT[d.getDay()]}`;
+}

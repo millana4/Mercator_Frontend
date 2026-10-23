@@ -1,6 +1,6 @@
 .block {
   max-width: 1200px;
-  margin: 16px auto 0;
+  margin: 30px auto 0;   /* от панели настроек и между блоками */
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -8,7 +8,7 @@
   box-shadow: var(--shadow);
 }
 
-/* последний блок страницы - такой же отступ снизу, как между блоками */
+/* последний блок страницы - отступ снизу */
 .block:last-child {
   margin-bottom: 16px;
 }
@@ -48,7 +48,7 @@
   max-width: 33%;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 38px;
 }
 
 .chart {

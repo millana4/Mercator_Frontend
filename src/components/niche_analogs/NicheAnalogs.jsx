@@ -58,6 +58,7 @@ function NicheAnalogs({ nicheId, periodRange }) {
           <CardDynamicsChart
             sku={selectedItem.sku}
             name={selectedItem.name}
+            url={selectedItem.url}
             periodFrom={periodRange.from}
             periodTo={periodRange.to}
           />
