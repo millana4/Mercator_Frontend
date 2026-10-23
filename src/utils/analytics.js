@@ -21,6 +21,15 @@ export function getPeriodRange(period, customFrom, customTo, curve) {
   return { from, to: lastDate };
 }
 
+// Границы периода для графиков цены карточек: начало - как у периода дашборда,
+// правая граница - текущий момент, чтобы были видны замеры после последней точки
+// снепшота. Произвольный период пользователь задал сам - он остаётся как есть.
+export function getCardPeriodRange(periodRange, period) {
+  if (!periodRange) return null;
+  if (period === 'custom') return periodRange;
+  return { from: periodRange.from, to: new Date() };
+}
+
 // Красит каждую точку кривой в направление того события EWMA, в чьё окно
 // [start_at, end_at] она попадает — вне любого окна точка серая ("none").
 export function assignEventToPoints(curve, events) {

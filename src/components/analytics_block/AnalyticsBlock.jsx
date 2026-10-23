@@ -2,7 +2,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { getLevels, getSnapshot } from '../../services/api';
-import { getCurrentEvent, getParticipantsTitle, getPeriodRange } from '../../utils/analytics';
+import { getCardPeriodRange, getCurrentEvent, getParticipantsTitle, getPeriodRange } from '../../utils/analytics';
 import { fmtLevelKey } from '../../utils/format';
 import TrendCard from '../trend_card/TrendCard';
 import EventCard from '../event_card/EventCard';
@@ -155,6 +155,10 @@ function AnalyticsBlock({
     return getPeriodRange(period, customFrom, customTo, ewmaSnapshot.curve);
   }, [isPending, chartReady, period, customFrom, customTo, ewmaSnapshot]);
 
+  // Графикам цены карточек - до текущего момента; кривая рынка - до точки снепшота
+  const cardPeriodRange = useMemo(
+    () => getCardPeriodRange(periodRange, period), [periodRange, period]);
+
   // Панель участников и подробности привязаны к текущему срезу
   const updatePanel = (fn) => setPanelState((cur) => ({
     key: snapshotKey, panel: fn(cur.key === snapshotKey ? cur.panel : null),
@@ -205,7 +209,7 @@ function AnalyticsBlock({
       </div>
 
       {hasDetails && detailsOpen && (
-        <div className={styles.details}>{renderDetails(selectedOption, periodRange)}</div>
+        <div className={styles.details}>{renderDetails(selectedOption, cardPeriodRange)}</div>
       )}
 
       {isPending ? (
@@ -241,7 +245,7 @@ function AnalyticsBlock({
       </div>
       )}
 
-      {panel && periodRange && (
+      {panel && cardPeriodRange && (
         <ParticipantsPanel
           title={getParticipantsTitle(panel.kind, panel.event)}
           colorVar={
@@ -250,8 +254,8 @@ function AnalyticsBlock({
               : (panel.event.direction === 'up' ? '--event-up' : '--event-down')
           }
           eventId={panel.event.id}
-          periodFrom={periodRange.from}
-          periodTo={periodRange.to}
+          periodFrom={cardPeriodRange.from}
+          periodTo={cardPeriodRange.to}
           onClose={closePanel}
         />
       )}
