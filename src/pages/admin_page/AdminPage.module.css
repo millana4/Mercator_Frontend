@@ -1,0 +1,162 @@
+.pageWrap {
+  margin: 0 auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pageTitle {
+  font-size: 22px;
+  margin: 8px 0 0 0;
+}
+
+.block {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px 22px;
+  box-shadow: var(--shadow);
+}
+
+.sectionTitle {
+  font-size: 18px;
+  margin: 0 0 14px 0;
+}
+
+.summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  font-size: 15px;
+  margin-bottom: 14px;
+}
+
+.params {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  margin: 8px 0 16px 0;
+}
+
+.param {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.select {
+  padding: 4px 6px;
+  font-size: 14px;
+  color: var(--text);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.progress p {
+  margin: 6px 0;
+  font-size: 15px;
+}
+
+.combos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.segBtn {
+  padding: 9px 16px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.segBtn:hover:not(.active) {
+  border-color: var(--accent);
+}
+
+.segBtn.active {
+  background: var(--accent);
+  color: var(--accent-text);
+  border-color: var(--accent);
+}
+
+.actionsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.muted {
+  font-size: 15px;
+  color: var(--text-muted);
+  margin: 6px 0;
+}
+
+.errorNote {
+  font-size: 15px;
+  color: var(--danger);
+  margin: 6px 0;
+}
+
+.btnSecondary {
+  background: var(--bg-card-alt);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 10px 18px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.btnSecondary:hover {
+  border-color: var(--accent);
+}
+
+.btnPrimary {
+  background: var(--accent);
+  color: var(--accent-text);
+  border: none;
+  padding: 10px 18px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.btnPrimary:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.btnDanger {
+  background: var(--bg-card-alt);
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  padding: 10px 18px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.btnPrimary:disabled,
+.btnDanger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+
+.blockedNote {
+  font-size: 14px;
+  color: var(--danger);
+  margin: 8px 0 0 0;
+}

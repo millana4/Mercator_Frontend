@@ -1,21 +1,24 @@
-// ---------- Шапка: лого, тема, Настройки/Дашборд, Войти/Выйти ----------
+// ---------- Шапка: лого, тема, Настройки (пользователь) / Управление сетами (админ) / Дашборд, Войти/Выйти ----------
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { setTheme } from '../../store/slices/themeSlice';
 import { logOut, selectIsLoggedIn } from '../../store/slices/authSlice';
+import { ADMIN_LABELS } from '../../constants/labels';
 import TempLoginForm from './TempLoginForm';
 import styles from './Header.module.css';
 
 function Header() {
   const theme = useSelector((state) => state.theme.value);
   const isLoggedIn = useSelector(selectIsLoggedIn);
+  const isAdmin = useSelector((state) => state.auth.isAdmin);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
   const [showLoginForm, setShowLoginForm] = useState(false);
 
-  const isSettingsPage = location.pathname === '/settings';
+  // на странице настроек и управления сетами - возврат на дашборд
+  const isSecondaryPage = location.pathname === '/settings' || location.pathname === '/admin';
 
   return (
     <div className={styles.headerWrap}>
@@ -40,11 +43,17 @@ function Header() {
             </button>
           </div>
 
-          {isSettingsPage ? (
+          {isSecondaryPage && (
             <button className={styles.btnSecondary} onClick={() => navigate('/')}>
               Дашборд
             </button>
-          ) : (
+          )}
+          {!isSecondaryPage && isAdmin && (
+            <button className={styles.btnSecondary} onClick={() => navigate('/admin')}>
+              {ADMIN_LABELS.navButton}
+            </button>
+          )}
+          {!isSecondaryPage && !isAdmin && (
             <button className={styles.btnSecondary} onClick={() => navigate('/settings')}>
               Настройки
             </button>

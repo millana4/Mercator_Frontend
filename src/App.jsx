@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import DashboardPage from './pages/dashboard_page/DashboardPage';
 import SettingsPage from './pages/settings_page/SettingsPage';
+import AdminPage from './pages/admin_page/AdminPage';
 import { restoreSession } from './store/slices/authSlice';
 import './App.css';
 
@@ -27,6 +28,7 @@ function App() {
       <Routes>
         <Route path="/" element={<DashboardPage />} />
         <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/admin" element={<AdminPage />} />
       </Routes>
     </BrowserRouter>
   );

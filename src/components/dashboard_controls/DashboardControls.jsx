@@ -1,8 +1,10 @@
-// ---------- Настройки дашборда: категория/маркетплейс/гео (из подписок) + период ----------
+// ---------- Настройки дашборда: категория/маркетплейс/гео (подписки; у администратора - каталог) + период ----------
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { CATEGORY_LABELS, MARKETPLACE_LABELS, PERIOD_LABELS } from '../../constants/labels';
-import { setSelection, setPeriod, setCustomRange } from '../../store/slices/dashboardSlice';
+import {
+  selectDashboardCombos, setSelection, setPeriod, setCustomRange,
+} from '../../store/slices/dashboardSlice';
 import Dropdown from '../dropdown/Dropdown';
 import styles from './DashboardControls.module.css';
 
@@ -16,7 +18,8 @@ function toOptions(values, labels) {
 
 function DashboardControls() {
   const dispatch = useDispatch();
-  const savedSets = useSelector((s) => s.settings.savedSets);
+  // связки: у пользователя - подписки, у администратора - весь каталог
+  const savedSets = useSelector(selectDashboardCombos);
   const { category, marketplace, geo, period, customFrom, customTo } = useSelector(
     (s) => s.dashboard,
   );

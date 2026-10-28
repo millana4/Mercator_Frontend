@@ -5,6 +5,7 @@ import authReducer from './slices/authSlice';
 import settingsReducer from './slices/settingsSlice';
 import dashboardReducer from './slices/dashboardSlice';
 import nichesReducer from './slices/nichesSlice';
+import adminReducer from './slices/adminSlice';
 
 export const store = configureStore({
   reducer: {
@@ -13,5 +14,6 @@ export const store = configureStore({
     settings: settingsReducer,
     dashboard: dashboardReducer,
     niches: nichesReducer,
+    admin: adminReducer,
   },
 });

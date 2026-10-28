@@ -18,7 +18,7 @@ function TempLoginForm({ onSuccess }) {
       const { access_token } = await login(username, password);
       localStorage.setItem('token', access_token);
       const me = await getMe();
-      dispatch(setCredentials({ token: access_token, username: me.username }));
+      dispatch(setCredentials({ token: access_token, username: me.username, isAdmin: me.is_admin }));
       onSuccess();
     } catch {
       setError('Неверный логин или пароль');

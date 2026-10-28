@@ -61,4 +61,8 @@ const dashboardSlice = createSlice({
 });
 
 export const { setSelection, setPeriod, setCustomRange } = dashboardSlice.actions;
+
+// Связки дашборда: у администратора - весь каталог, у пользователя - его подписки
+export const selectDashboardCombos = (state) =>
+  (state.auth.isAdmin ? state.settings.catalog : state.settings.savedSets);
 export default dashboardSlice.reducer;

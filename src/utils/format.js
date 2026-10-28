@@ -100,3 +100,18 @@ export function fmtRunDay(isoString) {
   const d = new Date(isoString);
   return `${pad2(d.getDate())}.${pad2(d.getMonth() + 1)} ${WEEKDAYS_SHORT[d.getDay()]}`;
 }
+
+
+// ---------- Управление сетами ----------
+// доли задания: полностью, как сохранены, с десятичной запятой; пусто - пустая строка
+export const fmtShare = (value) => (value === null || value === undefined ? ''
+  : String(value).replace('.', ','));
+
+// расчётные колонки задания: до 2 знаков
+export const fmtFigure = (value) => (value === null || value === undefined ? ''
+  : Number(value).toLocaleString('ru-RU', { maximumFractionDigits: 2 }));
+
+
+// поле числа в черновике: допустимый промежуточный ввод (цифры, у дробных - одна запятая или точка)
+export const isNumberDraft = (kind, text) =>
+  (kind === 'int' ? /^\d*$/ : /^\d*([.,]\d*)?$/).test(text);

@@ -65,4 +65,40 @@ export const getDashboardNiches = (params) =>
 export const getNicheAnalogs = (id) =>
   api.get(`/niches/${id}/analogs`).then((res) => res.data);
 
+// ---------- Управление сетами (только администратор; шлюз аналитики -> ядро) ----------
+// Правки черновика возвращают задание черновика с пересчитанными количествами.
+export const getAdminOverview = (params) =>
+  api.get('/admin/overview', { params }).then((res) => res.data);
+
+export const getAdminSet = (id) => api.get(`/admin/sets/${id}`).then((res) => res.data);
+
+export const createAdminDraft = (activeSetId) =>
+  api.post(`/admin/sets/${activeSetId}/draft`).then((res) => res.data);
+
+export const patchAdminDraft = (id, body) =>
+  api.patch(`/admin/drafts/${id}`, body).then((res) => res.data);
+
+export const addAdminSubcategory = (id, body) =>
+  api.post(`/admin/drafts/${id}/subcategories`, body).then((res) => res.data);
+
+export const patchAdminSubcategory = (id, subId, body) =>
+  api.patch(`/admin/drafts/${id}/subcategories/${subId}`, body).then((res) => res.data);
+
+export const deleteAdminSubcategory = (id, subId) =>
+  api.delete(`/admin/drafts/${id}/subcategories/${subId}`).then((res) => res.data);
+
+export const addAdminStratum = (id, subId, body) =>
+  api.post(`/admin/drafts/${id}/subcategories/${subId}/strata`, body).then((res) => res.data);
+
+export const patchAdminStratum = (id, stratumId, body) =>
+  api.patch(`/admin/drafts/${id}/strata/${stratumId}`, body).then((res) => res.data);
+
+export const deleteAdminStratum = (id, stratumId) =>
+  api.delete(`/admin/drafts/${id}/strata/${stratumId}`).then((res) => res.data);
+
+export const startAdminCollecting = (id) =>
+  api.post(`/admin/drafts/${id}/start`).then((res) => res.data);
+
+export const deleteAdminDraft = (id) => api.delete(`/admin/drafts/${id}`).then((res) => res.data);
+
 export default api;

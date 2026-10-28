@@ -9,6 +9,7 @@ import {
   fetchCatalog, fetchSubscriptions, saveSubscriptions,
   addRow, removeRow, updateRow, setSaveError,
 } from '../../store/slices/settingsSlice';
+import { SETTINGS_ADMIN_NOTE } from '../../constants/labels';
 import styles from './SettingsPage.module.css';
 
 function SettingsPage() {
@@ -17,6 +18,7 @@ function SettingsPage() {
     (s) => s.settings,
   );
   const username = useSelector((s) => s.auth.username);
+  const isAdmin = useSelector((s) => s.auth.isAdmin);
 
   useEffect(() => {
     dispatch(fetchCatalog());
@@ -38,6 +40,11 @@ function SettingsPage() {
     <div>
       <Header />
       <ProtectedRoute>
+        {isAdmin ? (
+          <div className={styles.pageWrap}>
+            <p className={styles.muted}>{SETTINGS_ADMIN_NOTE}</p>
+          </div>
+        ) : (
         <div className={styles.pageWrap}>
           <div className={styles.block}>
             <h2 className={styles.sectionTitle}>Данные пользователя</h2>
@@ -75,6 +82,7 @@ function SettingsPage() {
 
           <NichesBlock />
         </div>
+        )}
       </ProtectedRoute>
     </div>
   );

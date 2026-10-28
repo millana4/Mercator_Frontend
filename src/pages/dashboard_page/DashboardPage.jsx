@@ -12,7 +12,8 @@ import {
 } from '../../constants/labels';
 import { getDashboardNiches } from '../../services/api';
 import { selectIsLoggedIn } from '../../store/slices/authSlice';
-import { fetchSubscriptions } from '../../store/slices/settingsSlice';
+import { selectDashboardCombos } from '../../store/slices/dashboardSlice';
+import { fetchCatalog, fetchSubscriptions } from '../../store/slices/settingsSlice';
 import { capitalize } from '../../utils/text';
 
 
@@ -29,16 +30,17 @@ const loadNicheOptions = ({ category, marketplace, geo }) =>
 function DashboardPage() {
   const dispatch = useDispatch();
   const isLoggedIn = useSelector(selectIsLoggedIn);
-  const savedSets = useSelector((s) => s.settings.savedSets);
+  const isAdmin = useSelector((s) => s.auth.isAdmin);
+  // связки дашборда: у администратора - весь каталог, у пользователя - подписки
+  const combos = useSelector(selectDashboardCombos);
   const category = useSelector((s) => s.dashboard.category);
 
   useEffect(() => {
-    if (isLoggedIn) {
-      dispatch(fetchSubscriptions());
-    }
-  }, [isLoggedIn, dispatch]);
+    if (!isLoggedIn) return;
+    dispatch(isAdmin ? fetchCatalog() : fetchSubscriptions());
+  }, [isLoggedIn, isAdmin, dispatch]);
 
-  const hasAccess = isLoggedIn && savedSets.length > 0;
+  const hasAccess = isLoggedIn && combos.length > 0;
 
   return (
     <div>

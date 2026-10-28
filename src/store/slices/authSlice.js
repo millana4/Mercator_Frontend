@@ -18,6 +18,7 @@ export const restoreSession = createAsyncThunk(
 const clearAuth = (state) => {
   state.token = null;
   state.username = null;
+  state.isAdmin = false;
   localStorage.removeItem('token');
 };
 
@@ -26,11 +27,14 @@ const authSlice = createSlice({
   initialState: {
     token: localStorage.getItem('token') || null,
     username: null,
+    // администратор (управление сетами); null - токен есть, /auth/me ещё не ответил
+    isAdmin: localStorage.getItem('token') ? null : false,
   },
   reducers: {
     setCredentials: (state, action) => {
       state.token = action.payload.token;
       state.username = action.payload.username;
+      state.isAdmin = Boolean(action.payload.isAdmin);
       localStorage.setItem('token', action.payload.token);
     },
     logOut: clearAuth,
@@ -39,6 +43,7 @@ const authSlice = createSlice({
     builder
       .addCase(restoreSession.fulfilled, (state, action) => {
         state.username = action.payload.username;
+        state.isAdmin = Boolean(action.payload.is_admin);
       })
       .addCase(restoreSession.rejected, (state, action) => {
         // 401 - токен истёк или недействителен: выходим. Сервер недоступен - токен не трогаем.

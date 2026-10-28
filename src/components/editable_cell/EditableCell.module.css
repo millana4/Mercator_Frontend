@@ -1,0 +1,43 @@
+.cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.input {
+  width: 90px;
+  padding: 4px 6px;
+  font-size: 14px;
+  color: var(--text);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.input:disabled {
+  opacity: 0.6;
+}
+
+.wide {
+  width: 220px;
+}
+
+/* доли: длинное значение (до 14 знаков) видно целиком */
+.decimal {
+  width: 16ch;
+}
+
+.invalid {
+  border-color: var(--danger);
+}
+
+.error {
+  max-width: 220px;
+  font-size: 12px;
+  color: var(--danger);
+}
