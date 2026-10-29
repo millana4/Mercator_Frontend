@@ -282,3 +282,10 @@ export const confirmDeleteStratum = (item) =>
 // Страница «Настройки» — для пользователей без прав администратора
 export const SETTINGS_ADMIN_NOTE =
   'Настройки — для пользователей. Администратору доступно «Управление сетами».';
+
+
+// График цены карточки: кнопки зума по времени
+export const CARD_CHART_LABELS = {
+  zoomIn: 'Приблизить',
+  zoomOut: 'Отдалить',
+};

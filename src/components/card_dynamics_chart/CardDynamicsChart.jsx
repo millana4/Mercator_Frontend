@@ -1,7 +1,11 @@
 // ---------- График цены одной карточки в рублях — реальные замеры в границах периода дашборда ----------
-import { useEffect, useRef, useState } from 'react';
+// Зум по времени как на картах: «+» / «−» справа от графика, приближение к правому
+// краю (последние замеры), приближенный участок двигается перетаскиванием мышью.
+// Шкала цен не меняется.
+import { useEffect, useId, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { getCardMeasurements } from '../../services/api';
+import { CARD_CHART_LABELS } from '../../constants/labels';
 import ChartTooltip from '../chart_tooltip/ChartTooltip';
 import styles from './CardDynamicsChart.module.css';
 
@@ -23,6 +27,13 @@ const MIN_PRICE_LABEL_GAP = 22;  // минимальное расстояние 
 const MIN_DATE_LABEL_GAP = 48;   // минимальное расстояние между подписями дат
 const DAILY_MAX_DAYS = 62;       // до двух месяцев засечки по дням, дальше - по неделям (понедельник)
 const TICK_LEN = 5;
+const POINT_R = 2.8;             // радиус точки замера
+const POINT_RING = 0.75;         // тёмный ободок точки (цвет фона); в плотной группе - дуга 270° с пропуском справа
+const MERGE_DIST = POINT_R;      // центры ближе радиуса - верх и низ точек сливаются в полосу
+const RING_GAP = Math.SQRT1_2 * POINT_R; // пропуск дуги: хорда справа между углами ±45°
+const RING_SPACING = POINT_R * 2; // обводится точка не ближе диаметра к прошлой обведённой
+const ZOOM_STEP = 1.3;           // «+» / «−» - в 1,3 раза по времени
+const MIN_VIEW_MS = 3 * 3600000; // ближе трёх часов не приближаем
 const DAY_MS = 86400000;
 const WEEKDAYS = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
 
@@ -87,6 +98,10 @@ function CardDynamicsChart({ sku, name, url, periodFrom, periodTo }) {
 
   const [allPoints, setAllPoints] = useState(null);
   const requestIdRef = useRef(0);
+  const svgRef = useRef(null);
+  const dragRef = useRef(null);            // перетаскивание: {x, view} в момент нажатия
+  const [dragging, setDragging] = useState(false);
+  const clipId = `cdc-clip-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
 
   // Подсказка привязана к карточке и периоду: при их смене старая подсказка
   // не совпадает по ключу и считается скрытой - без setState внутри эффекта.
@@ -97,6 +112,12 @@ function CardDynamicsChart({ sku, name, url, periodFrom, periodTo }) {
     const current = cur.key === requestKey ? cur.tooltip : null;
     return { key: requestKey, tooltip: typeof next === 'function' ? next(current) : next };
   });
+
+  // Видимый участок времени {from, to} в мс; null - весь период. Привязан к карточке
+  // и периоду, как подсказка: при их смене зум сбрасывается без setState в эффекте.
+  const [zoomState, setZoomState] = useState({ key: null, view: null });
+  const view = zoomState.key === requestKey ? zoomState.view : null;
+  const setView = (next) => setZoomState({ key: requestKey, view: next });
 
   useEffect(() => {
     if (!periodFrom || !periodTo) return;
@@ -153,15 +174,38 @@ function CardDynamicsChart({ sku, name, url, periodFrom, periodTo }) {
   const yForPrice = (v) => PAD_T + plotH - (v / topV) * plotH;
 
   // ---------- Ось времени: от первого замера (с полуночи его дня) до конца периода ----------
-  // Засечки по дням или неделям выбираются по длине периода дашборда, а не обрезанного участка.
-  const daily = (periodTo.getTime() - periodFrom.getTime()) / DAY_MS <= DAILY_MAX_DAYS;
   const firstDay = new Date(Math.min(...points.map((p) => p.ms)));
   firstDay.setHours(0, 0, 0, 0);
   const fromMs = Math.max(periodFrom.getTime(), firstDay.getTime());
   const toMs = periodTo.getTime();
-  const spanMs = Math.max(toMs - fromMs, 1);
-  const xForTime = (ms) => PAD_L + ((ms - fromMs) / spanMs) * plotW;
-  const { ticks: dateTicks, stepMs } = buildDateTicks(fromMs, toMs, daily);
+
+  // Видимый участок при зуме: не выходит за [fromMs, toMs]; во весь период - null
+  const clampView = (from, to) => {
+    const span = to - from;
+    if (span >= toMs - fromMs) return null;
+    let f = Math.max(fromMs, from);
+    let t = f + span;
+    if (t > toMs) {
+      t = toMs;
+      f = t - span;
+    }
+    return { from: f, to: t };
+  };
+  const viewFrom = view ? view.from : fromMs;
+  const viewTo = view ? view.to : toMs;
+  const spanMs = Math.max(viewTo - viewFrom, 1);
+  const canZoomIn = spanMs > MIN_VIEW_MS;
+
+  // Правый край видимого участка остаётся на месте: приближаются последние замеры
+  const zoomBy = (factor) => {
+    const span = Math.max(spanMs / factor, MIN_VIEW_MS);
+    setView(clampView(viewTo - span, viewTo));
+  };
+
+  // Засечки по дням или неделям - по длине видимого участка (без зума - весь период)
+  const daily = spanMs / DAY_MS <= DAILY_MAX_DAYS;
+  const xForTime = (ms) => PAD_L + ((ms - viewFrom) / spanMs) * plotW;
+  const { ticks: dateTicks, stepMs } = buildDateTicks(viewFrom, viewTo, daily);
   const dateTickSpacing = (stepMs / spanMs) * plotW;
   const dateLabelEvery = Math.max(1, Math.ceil(MIN_DATE_LABEL_GAP / dateTickSpacing));
 
@@ -178,6 +222,24 @@ function CardDynamicsChart({ sku, name, url, periodFrom, periodTo }) {
     started = true;
   });
 
+  // Плотная группа: центр ближе радиуса к соседнему замеру - верх и низ точек сливаются
+  // в полосу. В ней все точки заливкой, а у каждой второй-третьей (не ближе RING_SPACING
+  // к прошлой обведённой) - ободок дугой 270° с пропуском справа: видно, что это точки.
+  // Остальные точки (одиночные и с небольшим перекрытием) - с полным ободком, как раньше.
+  const xy = points.map((p) => [xForTime(p.ms), p.price === null ? outOfStockY : yForPrice(p.price)]);
+  const near = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]) < MERGE_DIST;
+  const overlapped = xy.map((pt, i) => (i > 0 && near(pt, xy[i - 1]))
+    || (i < xy.length - 1 && near(pt, xy[i + 1])));
+  const ringed = new Set();
+  let lastRing = null;
+  for (let i = 0; i < xy.length; i += 1) {
+    if (!overlapped[i]) continue;
+    if (!lastRing || Math.hypot(xy[i][0] - lastRing[0], xy[i][1] - lastRing[1]) >= RING_SPACING) {
+      ringed.add(i);
+      lastRing = xy[i];
+    }
+  }
+
   const pointTooltip = (p) => {
     const change = p.price !== null && p.prev ? priceChange(p, p.prev) : null;
     return (
@@ -189,100 +251,168 @@ function CardDynamicsChart({ sku, name, url, periodFrom, periodTo }) {
     );
   };
 
+  // Перетаскивание приближенного участка: смещение мыши в пикселях -> сдвиг по времени
+  const startDrag = (e) => {
+    if (!view) return;
+    e.preventDefault();
+    dragRef.current = { x: e.clientX, view };
+    setDragging(true);
+    setTooltip(null);
+  };
+  const moveDrag = (e) => {
+    const drag = dragRef.current;
+    if (!drag || !svgRef.current) return;
+    const pxToUnits = W / svgRef.current.getBoundingClientRect().width;
+    const shiftMs = -(e.clientX - drag.x) * pxToUnits * ((drag.view.to - drag.view.from) / plotW);
+    setView(clampView(drag.view.from + shiftMs, drag.view.to + shiftMs));
+  };
+  const stopDrag = () => {
+    dragRef.current = null;
+    setDragging(false);
+  };
+
+  const svgClass = `${styles.svg} ${view ? (dragging ? styles.grabbing : styles.grab) : ''}`;
+
   return (
     <div
       className={styles.wrap}
       onMouseMove={(e) => {
-        if (tooltip) setTooltip((t) => t && { ...t, x: e.clientX, y: e.clientY });
+        if (dragRef.current) moveDrag(e);
+        else if (tooltip) setTooltip((t) => t && { ...t, x: e.clientX, y: e.clientY });
       }}
     >
       <p className={styles.title}>
         Динамика цены за выбранный период:{' '}
         {url ? <a href={url} target="_blank" rel="noopener noreferrer">{name}</a> : name}
       </p>
-      <svg
-        className={styles.svg}
-        viewBox={`0 0 ${W} ${svgHeight}`}
-        preserveAspectRatio="none"
-      >
-        {/* вертикальная ось цен с засечками */}
-        <line x1={PAD_L} y1={PAD_T} x2={PAD_L} y2={priceAreaBottom} stroke="var(--text-muted)" strokeWidth="1" />
-        {Array.from({ length: tickCount + 1 }, (_, i) => i).map((i) => {
-          const v = i * tickStep;
-          const ty = yForPrice(v);
-          const labeled = i % labelEvery === 0;
-          return (
-            <g key={`p${i}`}>
-              {labeled && i > 0 && (
-                <line
-                  x1={PAD_L} y1={ty} x2={W - PAD_R} y2={ty}
-                  stroke="var(--text-muted)" strokeOpacity={GRID_OPACITY}
-                  strokeWidth={GRID_WIDTH} strokeDasharray={GRID_DASH}
-                />
-              )}
-              <line x1={PAD_L - TICK_LEN} y1={ty} x2={PAD_L} y2={ty} stroke="var(--text-muted)" strokeWidth="1" />
-              {labeled && (
-                <text x={PAD_L - TICK_LEN - 3} y={ty + 3} textAnchor="end" className={styles.axisLabel}>
-                  {fmtRub(v)}
-                </text>
-              )}
-            </g>
-          );
-        })}
+      <div className={styles.chartRow}>
+        <svg
+          ref={svgRef}
+          className={svgClass}
+          viewBox={`0 0 ${W} ${svgHeight}`}
+          preserveAspectRatio="none"
+          onMouseDown={startDrag}
+          onMouseUp={stopDrag}
+          onMouseLeave={stopDrag}
+        >
+          <defs>
+            <clipPath id={clipId}>
+              <rect x={PAD_L} y={0} width={plotW} height={svgHeight} />
+            </clipPath>
+          </defs>
+          {/* вертикальная ось цен с засечками */}
+          <line x1={PAD_L} y1={PAD_T} x2={PAD_L} y2={priceAreaBottom} stroke="var(--text-muted)" strokeWidth="1" />
+          {Array.from({ length: tickCount + 1 }, (_, i) => i).map((i) => {
+            const v = i * tickStep;
+            const ty = yForPrice(v);
+            const labeled = i % labelEvery === 0;
+            return (
+              <g key={`p${i}`}>
+                {labeled && i > 0 && (
+                  <line
+                    x1={PAD_L} y1={ty} x2={W - PAD_R} y2={ty}
+                    stroke="var(--text-muted)" strokeOpacity={GRID_OPACITY}
+                    strokeWidth={GRID_WIDTH} strokeDasharray={GRID_DASH}
+                  />
+                )}
+                <line x1={PAD_L - TICK_LEN} y1={ty} x2={PAD_L} y2={ty} stroke="var(--text-muted)" strokeWidth="1" />
+                {labeled && (
+                  <text x={PAD_L - TICK_LEN - 3} y={ty + 3} textAnchor="end" className={styles.axisLabel}>
+                    {fmtRub(v)}
+                  </text>
+                )}
+              </g>
+            );
+          })}
 
-        {/* горизонтальная ось времени с засечками */}
-        <line x1={PAD_L} y1={priceAreaBottom} x2={W - PAD_R} y2={priceAreaBottom} stroke="var(--text-muted)" strokeWidth="1" />
-        {dateTicks.map((tick, i) => {
-          const tx = xForTime(tick.getTime());
-          const labeled = i % dateLabelEvery === 0;
-          return (
-            <g key={`d${i}`}>
-              {labeled && (
-                <line
-                  x1={tx} y1={PAD_T} x2={tx} y2={priceAreaBottom}
-                  stroke="var(--text-muted)" strokeOpacity={GRID_OPACITY}
-                  strokeWidth={GRID_WIDTH} strokeDasharray={GRID_DASH}
-                />
-              )}
-              <line x1={tx} y1={priceAreaBottom} x2={tx} y2={priceAreaBottom + TICK_LEN} stroke="var(--text-muted)" strokeWidth="1" />
-              {labeled && (
-                <text x={tx} y={dateAxisY} textAnchor="middle" className={styles.axisLabel}>
-                  {fmtDayMonth(tick)}
-                </text>
-              )}
-            </g>
-          );
-        })}
+          {/* горизонтальная ось времени с засечками */}
+          <line x1={PAD_L} y1={priceAreaBottom} x2={W - PAD_R} y2={priceAreaBottom} stroke="var(--text-muted)" strokeWidth="1" />
+          {dateTicks.map((tick, i) => {
+            const tx = xForTime(tick.getTime());
+            const labeled = i % dateLabelEvery === 0;
+            return (
+              <g key={`d${i}`}>
+                {labeled && (
+                  <line
+                    x1={tx} y1={PAD_T} x2={tx} y2={priceAreaBottom}
+                    stroke="var(--text-muted)" strokeOpacity={GRID_OPACITY}
+                    strokeWidth={GRID_WIDTH} strokeDasharray={GRID_DASH}
+                  />
+                )}
+                <line x1={tx} y1={priceAreaBottom} x2={tx} y2={priceAreaBottom + TICK_LEN} stroke="var(--text-muted)" strokeWidth="1" />
+                {labeled && (
+                  <text x={tx} y={dateAxisY} textAnchor="middle" className={styles.axisLabel}>
+                    {fmtDayMonth(tick)}
+                  </text>
+                )}
+              </g>
+            );
+          })}
 
-        {hasOutOfStock && (
-          <line
-            x1={PAD_L}
-            y1={outOfStockY}
-            x2={W - PAD_R}
-            y2={outOfStockY}
-            stroke="var(--border)"
-            strokeWidth="1"
-            strokeDasharray="4 4"
-          />
-        )}
+          {hasOutOfStock && (
+            <line
+              x1={PAD_L}
+              y1={outOfStockY}
+              x2={W - PAD_R}
+              y2={outOfStockY}
+              stroke="var(--border)"
+              strokeWidth="1"
+              strokeDasharray="4 4"
+            />
+          )}
 
-        <path d={d} fill="none" stroke={pointColor} strokeWidth="1.4" />
+          <g clipPath={`url(#${clipId})`}>
+            <path d={d} fill="none" stroke={pointColor} strokeWidth="1.4" />
 
-        {points.map((p, i) => (
-          <circle
-            key={i}
-            cx={xForTime(p.ms)}
-            cy={p.price === null ? outOfStockY : yForPrice(p.price)}
-            r="2.8"
-            fill={p.price === null ? 'var(--text-muted)' : pointColor}
-            stroke="var(--bg-card)"
-            strokeWidth="0.75"
-            style={{ cursor: 'pointer' }}
-            onMouseEnter={(e) => setTooltip({ x: e.clientX, y: e.clientY, content: pointTooltip(p) })}
-            onMouseLeave={() => setTooltip(null)}
-          />
-        ))}
-      </svg>
+            {/* Слой 1 - точки плотной группы заливкой: сливаются в жёлтую полосу.
+                Слой 2 - остальные точки с полным ободком и обведённые точки плотной группы
+                с ободком-дугой 270° (пропуск справа): видно, что это точки, а не линия */}
+            {[false, true].map((top) => points.map((p, i) => {
+              const merged = overlapped[i];
+              if (!top && !merged) return null;
+              if (top && merged && !ringed.has(i)) return null;
+              const [cx, cy] = xy[i];
+              const fullRing = top && !merged;
+              return (
+                <g key={`${top ? 't' : 'b'}${i}`}>
+                  <circle
+                    cx={cx}
+                    cy={cy}
+                    r={POINT_R}
+                    fill={p.price === null ? 'var(--text-muted)' : pointColor}
+                    stroke={fullRing ? 'var(--bg-card)' : undefined}
+                    strokeWidth={fullRing ? POINT_RING : undefined}
+                    style={{ cursor: view ? undefined : 'pointer' }}
+                    onMouseEnter={(e) => {
+                      if (!dragRef.current) setTooltip({ x: e.clientX, y: e.clientY, content: pointTooltip(p) });
+                    }}
+                    onMouseLeave={() => setTooltip(null)}
+                  />
+                  {top && merged && (
+                    // дуга 270°: от +45° (справа снизу) через низ, лево и верх до -45° (справа сверху)
+                    <path
+                      d={`M ${cx + RING_GAP} ${cy + RING_GAP} A ${POINT_R} ${POINT_R} 0 1 1 ${cx + RING_GAP} ${cy - RING_GAP}`}
+                      fill="none"
+                      stroke="var(--bg-card)"
+                      strokeWidth={POINT_RING}
+                      pointerEvents="none"
+                    />
+                  )}
+                </g>
+              );
+            }))}
+          </g>
+        </svg>
+
+        <div className={styles.zoom}>
+          <button type="button" className={styles.zoomBtn} title={CARD_CHART_LABELS.zoomIn}
+                  aria-label={CARD_CHART_LABELS.zoomIn} disabled={!canZoomIn}
+                  onClick={() => zoomBy(ZOOM_STEP)}>+</button>
+          <button type="button" className={styles.zoomBtn} title={CARD_CHART_LABELS.zoomOut}
+                  aria-label={CARD_CHART_LABELS.zoomOut} disabled={!view}
+                  onClick={() => zoomBy(1 / ZOOM_STEP)}>−</button>
+        </div>
+      </div>
 
       {tooltip && (
         <ChartTooltip x={tooltip.x} y={tooltip.y} color={pointColor}>
