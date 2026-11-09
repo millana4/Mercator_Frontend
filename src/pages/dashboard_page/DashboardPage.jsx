@@ -7,9 +7,8 @@ import DashboardControls from '../../components/dashboard_controls/DashboardCont
 import AnalyticsBlock from '../../components/analytics_block/AnalyticsBlock';
 import NicheDetails from '../../components/niche_details/NicheDetails';
 import SearchDynamicsBlock from '../../components/search_dynamics_block/SearchDynamicsBlock';
-import {
-  CATEGORY_LABELS, NICHE_DETAILS_LABELS, NICHE_PENDING_ANALYTICS_TEXT,
-} from '../../constants/labels';
+import ProdSpecsBlock from '../../components/prod_specs_block/ProdSpecsBlock';
+import { CATEGORY_LABELS, NICHE_PENDING_ANALYTICS_TEXT } from '../../constants/labels';
 import { getDashboardNiches } from '../../services/api';
 import { selectIsLoggedIn } from '../../store/slices/authSlice';
 import { selectDashboardCombos } from '../../store/slices/dashboardSlice';
@@ -62,12 +61,12 @@ function DashboardPage() {
                 level="niche"
                 headerLabel="Товарная ниша"
                 loadOptions={loadNicheOptions}
-                detailsLabels={NICHE_DETAILS_LABELS}
                 pendingText={NICHE_PENDING_ANALYTICS_TEXT}
                 renderDetails={(option, periodRange) => (
                   <NicheDetails niche={option.niche} periodRange={periodRange} />
                 )}
               />
+              <ProdSpecsBlock />
               <SearchDynamicsBlock />
             </>
           )}

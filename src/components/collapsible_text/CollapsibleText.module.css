@@ -1,0 +1,53 @@
+.clip {
+  overflow: hidden;
+}
+
+/* нижняя строка слегка тает: обрезка не режет буквы пополам */
+.fade {
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 26px), transparent);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 26px), transparent);
+}
+
+/* отступ первого заголовка внутри обрезки */
+.clip > div > :first-child {
+  margin-top: 4px;
+}
+
+/* многоточие над кнопкой; между ними большой отступ */
+.more {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 28px;
+  margin-top: 6px;
+}
+
+.ellipsis {
+  color: var(--text-muted);
+  font-size: 16px;
+  line-height: 1;
+}
+
+.btn {
+  background: var(--bg-card-alt);
+  color: var(--event-none);
+  border: 1px solid var(--border);
+  padding: 6px 14px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.btn:hover {
+  border-color: var(--accent);
+}
+
+.extra {
+  margin-top: 6px;
+}
+
+/* «Свернуть» - в самом низу блока, под списком карточек и графиком; большой отступ сверху */
+.less {
+  margin-top: 36px;
+}

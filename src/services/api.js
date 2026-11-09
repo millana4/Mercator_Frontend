@@ -36,6 +36,17 @@ export const getSearchDynamics = (params) =>
 export const getEventParticipants = (eventId) =>
   api.get(`/events/${eventId}/participants`).then((res) => res.data);
 
+// ---------- Признаки товаров-маячков (рекомендации по закупкам) ----------
+// страты активного сета с готовым анализом: { ready, strata: [{ stratum_id, label, n_cards, clusters }] };
+// params: { category, marketplace, geo }
+export const getProdSpecsStrata = (params) =>
+  api.get('/prod_specs/strata', { params }).then((res) => res.data);
+
+// анализ страты: кластеры (описание, типичные признаки, признаки с частотами, карточки)
+// и карточки «прочее»
+export const getProdSpecsStratum = (stratumId) =>
+  api.get(`/prod_specs/strata/${stratumId}`).then((res) => res.data);
+
 function toNaiveIso(date) {
   const pad = (n) => String(n).padStart(2, '0');
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;

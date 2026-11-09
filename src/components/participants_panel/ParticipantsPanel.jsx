@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { getEventParticipants } from '../../services/api';
 import { PARTICIPANTS_PANEL_LABELS as L, titleWithCount } from '../../constants/labels';
 import ParticipantRow from '../participant_row/ParticipantRow';
+import { collapseSmoothly } from '../../utils/collapse';
 import CardDynamicsChart from '../card_dynamics_chart/CardDynamicsChart';
 import styles from './ParticipantsPanel.module.css';
 
@@ -63,7 +64,8 @@ function ParticipantsPanel({ title, colorVar, eventId, periodFrom, periodTo, onC
 
       {/* закрывает всю панель - и список, и график цены, если он открыт */}
       <div className={styles.actions}>
-        <button className={styles.btnSecondary} onClick={onClose}>
+        <button className={styles.btnSecondary}
+          onClick={(e) => collapseSmoothly(e.currentTarget, onClose)}>
           {L.hideParticipants}
         </button>
       </div>
@@ -73,7 +75,8 @@ function ParticipantsPanel({ title, colorVar, eventId, periodFrom, periodTo, onC
           <CardDynamicsChart sku={selected.sku} name={selected.name} url={selected.url}
             periodFrom={periodFrom} periodTo={periodTo} />
           <div className={styles.actions}>
-            <button className={styles.btnSecondary} onClick={() => setSelectedSku(null)}>
+            <button className={styles.btnSecondary}
+              onClick={(e) => collapseSmoothly(e.currentTarget, () => setSelectedSku(null))}>
               {L.hideChart}
             </button>
           </div>

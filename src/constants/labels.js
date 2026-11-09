@@ -76,16 +76,13 @@ export const nicheLimitText = ({ used, limit }) => {
     + `${plural(left, ['нишу', 'ниши', 'ниш'])}.`;
 };
 
-export const NICHE_DETAILS_LABELS = {
-  show: 'Товары-аналоги',
-  hide: 'Скрыть подробности',
-};
-
 export const NICHE_ANALOGS_LABELS = {
   title: 'Товары-аналоги по степени схожести',
   loading: 'Загрузка…',
   empty: 'Список аналогов пуст.',
   hideChart: 'Скрыть график',
+  show: 'Показать',
+  hide: 'Скрыть',
 };
 
 // заголовок списка аналогов с актуальным числом: «Товары-аналоги по степени схожести — 30 шт.»
@@ -96,8 +93,7 @@ export const titleWithCount = (title, n) => `${title}: ${n} шт.`;
 
 // заглушка блока «Товарная ниша», пока по нише нет расчёта (подбор завершён, замеры копятся)
 export const NICHE_PENDING_ANALYTICS_TEXT =
-  'Замеры снимаются — аналитика по нише появится чуть позже. '
-  + 'Список товаров-аналогов уже доступен.';
+  'Замеры снимаются — аналитика по нише появится чуть позже.';
 
 
 // Блок «Анализ поисковой выдачи»
@@ -286,6 +282,50 @@ export const SETTINGS_ADMIN_NOTE =
 
 // График цены карточки: кнопки зума по времени
 export const CARD_CHART_LABELS = {
+  dynamics: 'Динамика цен',   // кнопка в строке карточки-участника
   zoomIn: 'Приблизить',
   zoomOut: 'Отдалить',
 };
+
+
+// Блок «Признаки товаров-маячков» (рекомендации по закупкам)
+export const PROD_SPECS_LABELS = {
+  header: 'Признаки товаров-маячков',
+  subcategory: 'Подкатегория',
+  loading: 'Загрузка…',
+  error: 'Не удалось загрузить анализ.',
+  summaryTitle: 'Собирательное описание типичного изделия',
+  typicalTitle: 'Типичные признаки:',
+  cardsTitle: 'Проанализированные товары-маячки:',
+  otherTitle: 'Товары, не вошедшие в кластеры:',
+  more: 'Подробнее',
+  less: 'Свернуть',
+  hideChart: 'Скрыть график',
+};
+
+// «Чтобы составить это описание, ИИ проанализировал 20 карточек и выделил признаки …»
+export const prodSpecsFeaturesIntro = (n) =>
+  `Чтобы составить это описание, ИИ проанализировал ${n} `
+  + `${plural(n, ['карточку', 'карточки', 'карточек'])} `
+  + 'и выделил признаки со следующей частотностью:';
+
+export const prodSpecsMore = (n) => `и ещё ${n}`;
+
+// Названия признаков: код из API -> подпись
+export const PROD_SPECS_FEATURE_LABELS = {
+  garment_type: 'Вид изделия',
+  silhouette: 'Фасон',
+  length: 'Длина',
+  sleeve: 'Рукав',
+  neckline: 'Воротник и вырез',
+  closure: 'Застёжка',
+  hardware: 'Фурнитура',
+  decor: 'Декор',
+  pockets: 'Карманы',
+  fabric: 'Ткань',
+  print: 'Принт',
+  colors: 'Цвет',
+  style: 'Стиль',
+  extra: 'Прочее',
+};
+export const prodSpecsFeatureLabel = (field) => PROD_SPECS_FEATURE_LABELS[field] || field;

@@ -1,9 +1,10 @@
 // ---------- Один блок аналитики: шапка + Тренд/Событие + график + участники ----------
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { getLevels, getSnapshot } from '../../services/api';
 import { getCardPeriodRange, getCurrentEvent, getParticipantsTitle, getPeriodRange } from '../../utils/analytics';
 import { fmtLevelKey } from '../../utils/format';
+import { collapseSmoothly } from '../../utils/collapse';
 import TrendCard from '../trend_card/TrendCard';
 import EventCard from '../event_card/EventCard';
 import MarketChart from '../market_chart/MarketChart';
@@ -25,12 +26,12 @@ const loadLevelOptions = ({ category, marketplace, geo, level }) =>
 function AnalyticsBlock({
   level, headerLabel, fixedLevelKey, fixedLevelKeyLabel,
   loadOptions = loadLevelOptions,   // (params) => Promise<[{ value, label, ... }]>
-  renderDetails,                    // (option, periodRange) => содержимое панели подробностей
-  detailsLabels,                    // { show, hide } - подписи кнопки подробностей
+  renderDetails,                    // (option, periodRange) => содержимое, всегда видимое под шапкой
   pendingText,                      // текст вместо аналитики, когда у выбранного варианта ready === false
 }) {
   const { category, marketplace, geo, period, customFrom, customTo } = useSelector((s) => s.dashboard);
   const isFixed = Boolean(fixedLevelKey);
+  const blockRef = useRef(null);   // корень блока: плавное скрытие панели участников
 
   // Состояние хранится вместе с ключом запроса. При смене связки или среза ключ
   // не совпадает - значение считается сброшенным без setState внутри эффекта.
@@ -51,58 +52,11 @@ function AnalyticsBlock({
   const snapshotKey = levelKey ? `${optionsKey}|${levelKey}` : null;
   const [snapshots, setSnapshots] = useState({ key: null, EWMA: null, MACD: null });
   const [panelState, setPanelState] = useState({ key: null, panel: null });
-  const [detailsState, setDetailsState] = useState({ key: null, open: false });
 
   const snapshotsFresh = snapshots.key === snapshotKey;
   const ewmaSnapshot = snapshotsFresh ? snapshots.EWMA : null;
   const macdSnapshot = snapshotsFresh ? snapshots.MACD : null;
   const panel = panelState.key === snapshotKey ? panelState.panel : null; // { kind, event } | null
-  const detailsOpen = detailsState.key === snapshotKey && detailsState.open;
-
-    // ---------- Скрытие подробностей без прыжка страницы ----------
-  // Освободившаяся высота остаётся распоркой в конце блока и убирается по мере
-  // прокрутки вверх. Высота распорки меняется через style, без состояния React.
-  const blockRef = useRef(null);
-  const spacerRef = useRef(null);
-  const collapseRef = useRef(null);       // { blockHeight, scrollY } в момент нажатия «Скрыть»
-  const releaseSpacerRef = useRef(null);  // снять распорку и отписаться от прокрутки
-
-  useLayoutEffect(() => {
-    const pending = collapseRef.current;
-    const block = blockRef.current;
-    const spacer = spacerRef.current;
-    if (!pending || !block || !spacer) return;
-    collapseRef.current = null;
-    if (releaseSpacerRef.current) releaseSpacerRef.current();
-
-    let height = Math.max(pending.blockHeight - block.offsetHeight, 0);
-    spacer.style.height = `${height}px`;
-    window.scrollTo(0, pending.scrollY);  // до отрисовки: если браузер успел сдвинуть прокрутку
-    let lastY = window.scrollY;
-
-    function release() {
-      window.removeEventListener('scroll', onScroll);
-      spacer.style.height = '0px';
-      releaseSpacerRef.current = null;
-    }
-    function onScroll() {
-      const y = window.scrollY;
-      if (y < lastY) {
-        height = Math.max(height - (lastY - y), 0);
-        spacer.style.height = `${height}px`;
-        if (height === 0) release();
-      }
-      lastY = y;
-    }
-
-    window.addEventListener('scroll', onScroll, { passive: true });
-    releaseSpacerRef.current = release;
-  }, [detailsOpen]);
-
-  // при уходе со страницы - отписаться от прокрутки
-  useEffect(() => () => {
-    if (releaseSpacerRef.current) releaseSpacerRef.current();
-  }, []);
 
   useEffect(() => {
     if (isFixed || !category || !marketplace || !geo) return;
@@ -159,37 +113,38 @@ function AnalyticsBlock({
   const cardPeriodRange = useMemo(
     () => getCardPeriodRange(periodRange, period), [periodRange, period]);
 
-  // Панель участников и подробности привязаны к текущему срезу
+  // Подробности (ниша: описание, референс, аналоги) видны всегда, ещё до загрузки расчётов:
+  // пока кривой нет, период графиков цены считается от текущего момента.
+  const fallbackPeriod = useMemo(
+    () => getCardPeriodRange(getPeriodRange(period, customFrom, customTo, []), period),
+    [period, customFrom, customTo]);
+  const detailsPeriod = cardPeriodRange || fallbackPeriod;
+
+  // Панель участников привязана к текущему срезу
   const updatePanel = (fn) => setPanelState((cur) => ({
     key: snapshotKey, panel: fn(cur.key === snapshotKey ? cur.panel : null),
   }));
   const handleSelectChartEvent = (kind, event) => updatePanel(() => ({ kind, event }));
-  const toggleTrendButton = () => updatePanel((cur) =>
-    (cur && cur.kind === 'trend' ? null : { kind: 'trend', event: trendEvent }));
-  const toggleEventButton = () => updatePanel((cur) =>
-    (cur && cur.kind === 'event' ? null : { kind: 'event', event: eventEvent }));
-  const closePanel = () => updatePanel(() => null);
-  const toggleDetails = () => {
-    if (detailsOpen && blockRef.current) {
-      // скрытие: запомнить высоту блока и прокрутку - распорку поставит useLayoutEffect
-      collapseRef.current = { blockHeight: blockRef.current.offsetHeight, scrollY: window.scrollY };
-    } else if (releaseSpacerRef.current) {
-      // повторное открытие: распорка не нужна
-      releaseSpacerRef.current();
+  // Закрытие панели - плавное (collapseSmoothly), открытие - сразу
+  const togglePanel = (kind, event) => {
+    if (panel !== null && panel.kind === kind) {
+      collapseSmoothly(blockRef.current, () => updatePanel(() => null));
+    } else {
+      updatePanel(() => ({ kind, event }));
     }
-    setDetailsState((cur) => ({
-      key: snapshotKey, open: !(cur.key === snapshotKey && cur.open),
-    }));
   };
+  const toggleTrendButton = () => togglePanel('trend', trendEvent);
+  const toggleEventButton = () => togglePanel('event', eventEvent);
+  const closePanel = () => updatePanel(() => null);
 
   if (!isFixed && !levelsLoaded) return null;
   if (!isFixed && availableOptions.length === 0) return null;
   if (levelKey && !isPending && trendStatus.state === 'hidden' && eventStatus.state === 'hidden') return null;
 
-  const hasDetails = Boolean(renderDetails && detailsLabels && selectedOption);
+  const hasDetails = Boolean(renderDetails && selectedOption);
 
   return (
-    <div className={styles.block} ref={blockRef}>
+    <div className={styles.block} ref={blockRef} data-collapse-root>
       <div className={styles.header}>
         <span className={styles.headerLabel}>{headerLabel}</span>
         {isFixed ? (
@@ -201,15 +156,10 @@ function AnalyticsBlock({
             onChange={setSelectedKey}
           />
         )}
-        {hasDetails && (
-          <button className={styles.collapseBtn} onClick={toggleDetails}>
-            {detailsOpen ? detailsLabels.hide : detailsLabels.show}
-          </button>
-        )}
       </div>
 
-      {hasDetails && detailsOpen && (
-        <div className={styles.details}>{renderDetails(selectedOption, cardPeriodRange)}</div>
+      {hasDetails && (
+        <div className={styles.details}>{renderDetails(selectedOption, detailsPeriod)}</div>
       )}
 
       {isPending ? (
@@ -261,7 +211,6 @@ function AnalyticsBlock({
           />
         </div>
       )}
-      <div ref={spacerRef} aria-hidden="true" />
     </div>
   );
 }

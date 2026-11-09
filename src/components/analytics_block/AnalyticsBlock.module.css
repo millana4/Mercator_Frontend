@@ -30,12 +30,9 @@
   font-weight: 700;
 }
 
+/* описание, референс и аналоги ниши - просто текстом в блоке, без вложенного окна */
 .details {
-  margin: -4px 0 16px 0;
-  padding: 12px 14px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--bg-card-alt);
+  margin: 0 0 24px 0;
 }
 
 .body {
@@ -71,20 +68,4 @@
   .data, .chart {
     max-width: 100%;
   }
-}
-
-.collapseBtn {
-  margin-left: auto;
-  background: var(--bg-card-alt);
-  color: var(--event-none);
-  border: 1px solid var(--border);
-  padding: 10px 18px;
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.collapseBtn:hover {
-  border-color: var(--accent);
 }

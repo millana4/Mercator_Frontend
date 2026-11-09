@@ -11,10 +11,11 @@
   gap: 6px;
 }
 
+/* подзаголовки - белым (основной цвет текста), как в блоке «Признаки товаров-маячков» */
 .label {
   font-size: 16px;
   font-weight: 600;
-  color: var(--text-muted);
+  color: var(--text);
 }
 
 .link {

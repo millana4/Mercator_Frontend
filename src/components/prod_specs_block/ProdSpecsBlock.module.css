@@ -1,0 +1,82 @@
+
+.block {
+  max-width: 1200px;
+  margin: 30px auto 0;   /* между блоком ниши и блоком выдачи - как между остальными блоками */
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px 22px;
+  box-shadow: var(--shadow);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  font-size: 21px;
+}
+
+/* строка «Подкатегория» + выпадающий список - как шапка блока подкатегории */
+.subheader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  font-size: 21px;
+}
+
+.headerLabel {
+  color: var(--label-text);
+  font-weight: 700;
+}
+
+/* слово «Подкатегория» - как название кластера */
+.subLabel {
+  color: var(--label-text);
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.cluster + .cluster {
+  margin-top: 30px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+
+.clusterTitle {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 14px 0;
+  color: var(--text);
+}
+
+.sectionTitle {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 18px 0 8px 0;
+  color: var(--text);
+}
+
+.text {
+  font-size: 16px;
+  line-height: 1.6;   /* как у списков: обрезка считает строки по одной высоте */
+  margin: 0;
+}
+
+.bullets {
+  margin: 0;
+  padding-left: 22px;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.more {
+  color: var(--text-muted);
+}
+
+.muted {
+  color: var(--text-muted);
+  font-size: 16px;
+  margin: 8px 0;
+}

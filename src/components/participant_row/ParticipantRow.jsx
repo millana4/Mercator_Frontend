@@ -1,4 +1,5 @@
 // ---------- Одна строка списка участников: название + ссылка + кнопка динамики ----------
+import { CARD_CHART_LABELS } from '../../constants/labels';
 import styles from './ParticipantRow.module.css';
 
 function ParticipantRow({ participant, isSelected, onShowDynamics }) {
@@ -8,7 +9,7 @@ function ParticipantRow({ participant, isSelected, onShowDynamics }) {
         {participant.name}
       </a>
       <button className={styles.btnToggle} onClick={() => onShowDynamics(participant.sku)}>
-        Посмотреть динамику
+        {CARD_CHART_LABELS.dynamics}
       </button>
     </div>
   );
